@@ -1,0 +1,33 @@
+/** 
+*  Raterr Plugin: allows a simple 5-star-rater
+*
+* @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
+* @author     Taggic <taggic@t-online.de>
+*/
+
+Intro
+------ 
+ 
+Syntax
+------- 
+ Simply place the following syntax into the page markup: 
+
+ <code>
+  ====== Rater ======
+  {(rate>1)} 
+
+ </code>
+
+
+Installation
+------------
+ Just download and extract it as folder “rater” into your “\lib\plugins” 
+ directory.
+
+
+Configuration
+--------------
+
+
+Examples/Usage
+--------------

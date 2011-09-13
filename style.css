@@ -1,0 +1,23 @@
+/** * Design Elements - additional  CSS for the rater plugin * * @author Taggic <taggic@t-online.de> */
+/* ----- General Elements ---------- */
+ .thumbup {
+	width: 18px;
+	height: 18px;
+	display: inline-block;
+	margin: 0 auto;
+	vertical-align:bottom;
+	border:none;
+}
+.tup {background: url(img/thumbup_hover.gif) no-repeat;}
+.thumbup:hover {background-position: 0 -18px;}
+
+ .thumbdown {
+	width: 18px;
+	height: 18px;
+	display: inline-block;
+	margin: 0 auto;
+	vertical-align:bottom;
+	border:none;
+}
+.tdn {background: url(img/thumbdown_hover.gif) no-repeat;}
+.thumbdown:hover {background-position: 0 -18px;}
