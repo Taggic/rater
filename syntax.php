@@ -228,9 +228,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $ret .= '<TABLE class="hreview">';
               $ret .= '<form name="'.$data['rater_id'].$data['rater_name'].$data['rater_type'].'" method="post" action="doku.php?id=' . $ID .'">';
                                   
-              $ret .= '<TR><TD><a class="thumbup tup" href="doku.php?id='.$ID.'&do=rate_voteup&rater_id='.$rater_id.'&rater_name='.$rater_name.'" /></a>'.
+              $ret .= '<TR><TD><a class="thumbup tup" href="doku.php?id='.$ID.'&do=rate_voteup&rater_id='.$rater_id.'&rater_name='.$rater_name.'" /><img src="'.DOKU_BASE.'"lib/plugins/rater/img/thumbup_hover.gif" /></a>'.
                    '<span id="vote1_1" style="color:#5b8f22">('.$vote1.')&nbsp</span>'.
-                   '<a class="thumbdown tdn" href="doku.php?id='.$ID.'&do=rate_votedown" /></a>'.
+                   '<a class="thumbdown tdn" href="doku.php?id='.$ID.'&do=rate_votedown" /><img src="'.DOKU_BASE.'"lib/plugins/rater/img/thumbup_hover.gif" /></a>'.
                    '<span id="vote1_2" style="color:#FF1822">('.$vote2.')</span></TD></TR>';
               if($rater_msg!="") $ret .= "<div>".$rater_msg."</div>";
               $ret .= '</form>';

@@ -8,7 +8,7 @@
 	vertical-align:bottom;
 	border:none;
 }
-.tup {background: url(img/thumbup_hover.gif) no-repeat;}
+.tup {background: url(DOKU_BASE."lib/plugins/rater/img/thumbup_hover.gif) no-repeat;}
 .thumbup:hover {background-position: 0 -18px;}
 
  .thumbdown {
@@ -19,5 +19,5 @@
 	vertical-align:bottom;
 	border:none;
 }
-.tdn {background: url(img/thumbdown_hover.gif) no-repeat;}
+.tdn {background: url(DOKU_BASE."lib/plugins/rater/img/thumbdown_hover.gif) no-repeat;}
 .thumbdown:hover {background-position: 0 -18px;}

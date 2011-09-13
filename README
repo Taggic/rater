@@ -1,5 +1,5 @@
 /** 
-*  Raterr Plugin: allows a simple 5-star-rater
+*  Rater Plugin: allows a simple 5-star-rater
 *
 * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
 * @author     Taggic <taggic@t-online.de>
@@ -14,8 +14,11 @@ Syntax
 
  <code>
   ====== Rater ======
-  {(rate>1)} 
-
+  For simple votings by thumgs up/down:  
+  {(rater>id=1|name=item1|type=vote)}    
+  
+  For 5 star rating:  
+  {(rater>id=1|name=item1|type=vote)} 
  </code>
 
 
