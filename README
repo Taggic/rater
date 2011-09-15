@@ -1,5 +1,5 @@
 /** 
-*  Rater Plugin: allows a simple 5-star-rater
+*  Rater Plugin: allows a simple 5-star-rater and thumb voting
 *
 * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
 * @author     Taggic <taggic@t-online.de>
@@ -10,17 +10,17 @@ Intro
  
 Syntax
 ------- 
- Simply place the following syntax into the page markup: 
-
+ Simply place the following syntax into the page markup for 5-Star-Rater: 
  <code>
-  ====== Rater ======
-  For simple votings by thumgs up/down:  
-  {(rater>id=1|name=item1|type=vote)}    
-  
-  For 5 star rating:  
-  {(rater>id=1|name=item1|type=vote)} 
+  {(rater>id=1|name=item1|type=rate)}
  </code>
 
+ or the following for thumb Voting: 
+ <code>
+  {(rater>id=1|name=item1|type=vote)}
+ </code>
+
+ If you want to use this multiple times you have to choose different ids and names.
 
 Installation
 ------------
@@ -30,7 +30,8 @@ Installation
 
 Configuration
 --------------
-
+Configuration can be done via Administration of DokuWiki Configuration Manager
 
 Examples/Usage
 --------------
+for examples please refer to: http://www.fristercons.de/fcon/doku.php?id=rater:example

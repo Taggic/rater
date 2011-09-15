@@ -66,14 +66,14 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
       $rater_id = $this->rater_id;
       $rater_name = $this->rater_name;
 
-          // User settings
-          $rater_ip_voting_restriction = true; // restrict ip address voting (true or false)
-          $rater_ip_vote_qty=1; // how many times an ip address can vote
-          $rater_already_rated_msg="You have already rated this item. You were allowed ".$rater_ip_vote_qty." vote(s).";
-          $rater_not_selected_msg="You have not selected a rating value.";
-          $rater_thankyou_msg="Thankyou for voting.";
-          $rater_generic_text="this item"; // generic item text
-          $rater_end_of_line_char="\n"; // may want to change for different operating systems
+          // Config settings
+          $rater_ip_voting_restriction = $this->getConf('voting_restriction'); // restrict ip address voting (true or false)
+          $rater_ip_vote_qty           = $this->getConf('vote_qty');           // how many times an ip address can vote
+          $rater_already_rated_msg     = sprintf($this->getConf('already_rated_msg'),$rater_ip_vote_qty);
+          $rater_not_selected_msg      = $this->getConf('not_selected_msg');
+          $rater_thankyou_msg          = $this->getConf('thankyou_msg');
+          $rater_generic_text          = $this->getConf('generic_text');       // generic item text
+          $rater_end_of_line_char      = $this->getConf('eol_char');           // may want to change for different operating systems
       
       if (($data->data == 'rate_voteup') && ($this->vote == 1)) {
               $data->preventDefault();
