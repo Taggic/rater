@@ -142,22 +142,34 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           
           if ($rater_type=="rate") {          
               // Get current rating
+              $r0 = '0'; $r1 = '0'; $r2 = '0'; $r3 = '0'; $r4 = '0'; $r5 = '0';
               if(is_file($rater_filename)){
-               $rater_file=fopen($rater_filename,"r");
-               $rater_str="";
-               $rater_str = fread($rater_file, 1024*8);
-               if($rater_str!=""){
-                $rater_data=explode($rater_end_of_line_char,$rater_str);
-                $rater_votes=count($rater_data)-1;
-                $rater_sum=0;
-                foreach($rater_data as $d){
-                 $d=explode("|",$d);
-                 $rater_sum+=$d[0];
-                }
-                $rater_rating=number_format(($rater_sum/$rater_votes), 2, '.', '');
-               }
-               fclose($rater_file);
-              }else{
+                 $rater_file=fopen($rater_filename,"r");
+                 $rater_str="";
+                 $rater_str = fread($rater_file, 1024*8);
+                 if($rater_str!=""){
+                    $rater_data=explode($rater_end_of_line_char,$rater_str);
+                    $rater_votes=count($rater_data)-1;
+                    $rater_sum=0;
+
+                    foreach($rater_data as $d){
+                        $d=explode("|",$d);
+                        $rater_sum+=$d[0];
+      
+                        // collect votes per level to display the details
+
+                        if ($d[0] === '0'  ){$r0 = $r0 + 1;}
+                        if ($d[0] === '1'  ){$r1 = $r1 + 1;}
+                        if ($d[0] === '2'  ){$r2 = $r2 + 1;}
+                        if ($d[0] === '3'  ){$r3 = $r3 + 1;}
+                        if ($d[0] === '4'  ){$r4 = $r4 + 1;}
+                        if ($d[0] === '5'  ){$r5 = $r5 + 1;}
+                    }
+                    $rater_rating=number_format(($rater_sum/$rater_votes), 2, '.', '');
+                 }
+                 fclose($rater_file);
+              }
+              else{
                $rater_file=fopen($rater_filename,"w");
                fclose($rater_file);
               }
@@ -175,12 +187,42 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               if ($rater_rating >= 4.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/45star.gif";$rater_stars_txt="4.5";}
               if ($rater_rating >= 5  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/5star.gif";$rater_stars_txt="5";}
               
+              // build the return value for details
+              $ret_details = '<div class="rating__details">';
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/00star.gif?w=40&amp;" alt="Not Rated" width="40" align="left" /> '.$r0.' visitor votes<BR>';
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/1star.gif?w=40&amp;" alt="1 Star" width="40" align="left" /> '.$r1.' visitor votes<BR>';              
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/2star.gif?w=40&amp; alt="2 Stars" width="40" align="left" /> '.$r2.' visitor votes<BR>';              
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/3star.gif?w=40&amp;" alt="3 Stars" width="40" align="left" /> '.$r3.' visitor votes<BR>';              
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/4star.gif?w=40&amp;" alt="4 Stars" width="40" align="left" /> '.$r4.' visitor votes<BR>';
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/5star.gif?w=40&amp;" alt="5 Stars" width="40" align="left" /> '.$r5.' visitor votes<BR>';
+              $ret_details .= '</div>';                            
+
               
               // Output
               $ret .= '<TABLE class="hreview">';
-              $ret .= '<form method="post" action="doku.php?id=' . $ID .'">';
+              $ret .= '<form method="post" action="doku.php?id=' . $ID .'" >';
               $ret .= '<TR><TD class="item">Rate '.$rater_item_name.'</TD></TR>';
-              $ret .= '<TR><TD class="rating"><img src="'.$rater_stars.'?x='.uniqid((double)microtime()*1000000,1).'" alt="'.$rater_stars_txt.' stars" />&nbsp'.$rater_stars_txt.'</span> from <span class="reviewcount"> '.$rater_votes.' votes</TD></TR>.';
+              $ret .= '<TR>';
+              
+              $ret .= '<script type="text/javascript" language="JavaScript1.2">
+                          var visible = false;
+                          function hidden'.$rater_id.'() 
+                          { 
+                              if (visible)
+                              {
+                                  document.getElementById("details_'.$rater_id.'").style.display = "none";
+                                  visible = false;
+                              }
+                              else
+                              {
+                                  document.getElementById("details_'.$rater_id.'").style.display = "block";
+                                  visible = true;
+                              }
+                          } 
+                        </script>';
+                            
+              $ret .= '<TD class="rating"><img src="'.$rater_stars.'?x='.uniqid((double)microtime()*1000000,1).'" alt="'.$rater_stars_txt.' stars" />&nbsp'.$rater_stars_txt.'</span> from <span class="reviewcount"> '.$rater_votes.' votes <a href="#" onclick="hidden'.$rater_id.'()">(Details)</a></TD></TR>';
+              $ret .= '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>'; 
               $ret .= '<TR><TD>';
               $ret .= '<label for="rate1_'.$rater_id.'"><input type="radio" value="1" name="rating_'.$rater_id.'[]" id="rate1_'.$rater_id.'" />&nbsp</label>';
               $ret .= '<label for="rate2_'.$rater_id.'"><input type="radio" value="2" name="rating_'.$rater_id.'[]" id="rate2_'.$rater_id.'" />&nbsp</label>';
@@ -224,7 +266,6 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                }
               
               // Output
-               
               $ret .= '<TABLE class="hreview">';
               $ret .= '<form name="'.$data['rater_id'].$data['rater_name'].$data['rater_type'].'" method="post" action="doku.php?id=' . $ID .'">';
                                   
@@ -235,8 +276,6 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               if($rater_msg!="") $ret .= "<div>".$rater_msg."</div>";
               $ret .= '</form>';
               $ret .= '</TABLE>';              
-
-                      
           }
         }
         
