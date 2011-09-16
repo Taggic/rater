@@ -142,7 +142,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           
           if ($rater_type=="rate") {          
               // Get current rating
-              $r0 = '0'; $r1 = '0'; $r2 = '0'; $r3 = '0'; $r4 = '0'; $r5 = '0';
+              $r1 = '0'; $r2 = '0'; $r3 = '0'; $r4 = '0'; $r5 = '0';
               if(is_file($rater_filename)){
                  $rater_file=fopen($rater_filename,"r");
                  $rater_str="";
@@ -157,8 +157,6 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                         $rater_sum+=$d[0];
       
                         // collect votes per level to display the details
-
-                        if ($d[0] === '0'  ){$r0 = $r0 + 1;}
                         if ($d[0] === '1'  ){$r1 = $r1 + 1;}
                         if ($d[0] === '2'  ){$r2 = $r2 + 1;}
                         if ($d[0] === '3'  ){$r3 = $r3 + 1;}
@@ -189,7 +187,6 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               
               // build the return value for details
               $ret_details = '<div class="rating__details">';
-              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/00star.gif?w=40&amp;" alt="Not Rated" width="40" align="left" /> '.$r0.' visitor votes<BR>';
               $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/1star.gif?w=40&amp;" alt="1 Star" width="40" align="left" /> '.$r1.' visitor votes<BR>';              
               $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/2star.gif?w=40&amp; alt="2 Stars" width="40" align="left" /> '.$r2.' visitor votes<BR>';              
               $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/3star.gif?w=40&amp;" alt="3 Stars" width="40" align="left" /> '.$r3.' visitor votes<BR>';              

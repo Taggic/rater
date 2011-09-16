@@ -1,8 +1,8 @@
 <?php
 /******************************************************************************
 **
-**  action script related to IssueTracker
-**  Action to display details of a selected issue
+**  action script related to Rater
+**  Action to count votes and display message
 */
 /******************************************************************************
 **  must run within Dokuwiki
@@ -23,10 +23,10 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2011-09-13',
+         'date'   => '2011-09-16',
          'name'   => 'rater (action plugin component)',
-         'desc'   => 'to store votes.',
-         'url'    => 'http://www.dokuwiki.org/plugin:issuetracker',
+         'desc'   => 'to store votes and display feedback.',
+         'url'    => 'http://www.dokuwiki.org/plugin:rater',
          );
   }
 /******************************************************************************
@@ -61,6 +61,16 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
 **  Generate output
 */
     function output(&$data) {
+      if (($data->data == 'rate_voteup') && ($this->vote == 1)) {
+              $data->preventDefault();
+              $rater_rating = 1;
+      } 
+      elseif (($data->data == 'rate_votedown') && ($this->vote == 2)) {
+              $data->preventDefault();
+              $rater_rating = 2;
+      }
+      else { return; }
+      
       global $ID;
       $rater_type = "vote";
       $rater_id = $this->rater_id;
@@ -75,14 +85,6 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
           $rater_generic_text          = $this->getConf('generic_text');       // generic item text
           $rater_end_of_line_char      = $this->getConf('eol_char');           // may want to change for different operating systems
       
-      if (($data->data == 'rate_voteup') && ($this->vote == 1)) {
-              $data->preventDefault();
-              $rater_rating = 1;
-      } 
-      elseif (($data->data == 'rate_votedown') && ($this->vote == 2)) {
-              $data->preventDefault();
-              $rater_rating = 2;
-      }
 
     //        save vote
             $rater_filename = metaFN('rater_'.$rater_id.$rater_name.$rater_type, '.rating');
@@ -120,7 +122,8 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
       // reload original page
       $ret .= $rater_msg.'<br><a href="doku.php?id='.$ID.'" />back</a>';
       echo $ret;
-      $renderer->doc .= $ret; 
+//      echo '<meta http-equiv="refresh" content="0; URL=doku.php?id='.$ID.'">';
+
     }
 /******************************************************************************/
 }
