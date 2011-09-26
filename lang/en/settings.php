@@ -13,5 +13,4 @@ $lang['already_rated_msg']  = "Exceeded user rate attempts msg";
 $lang['not_selected_msg']   = "Missing rate value msg";
 $lang['thankyou_msg']       = "Thank you for msg";
 $lang['generic_text']       = "generic item text";
-$lang['eol_char']           = "end of line character (OS specific)";
-                                                                                                       
+$lang['eol_char']           = "end of line character (OS specific)";                                                                                                       

@@ -23,7 +23,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2011-09-16',
+         'date'   => '2011-09-26',
          'name'   => 'rater (action plugin component)',
          'desc'   => 'to store votes and display feedback.',
          'url'    => 'http://www.dokuwiki.org/plugin:rater',
@@ -45,12 +45,16 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
              $this->raterfile = $_GET['rater_file'];
              $this->rater_id = $_GET['rater_id'];
              $this->rater_name = $_GET['rater_name'];
+             $this->rater_ip = $_GET['rater_ip'];
+             $this->rater_end = $_GET['rater_end'];
              $this->vote = 1;         
          }
          elseif ($event->data === 'rate_votedown') {
              $this->raterfile = $_GET['rater_file'];
              $this->rater_id = $_GET['rater_id'];
              $this->rater_name = $_GET['rater_name'];
+             $this->rater_ip = $_GET['$rater_ip'];
+             $this->rater_end = $_GET['rater_end'];
              $this->vote = 2;
          }
          else return;
@@ -73,8 +77,20 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
       
       global $ID;
       $rater_type = "vote";
-      $rater_id = $this->rater_id;
+      $rater_id   = $this->rater_id;
       $rater_name = $this->rater_name;
+      $rater_ip   = $this->rater_ip;
+      $rater_end  = $this->rater_end;
+
+/*          if (($rater_end!='never') && (date('d.m.Y',strtotime($rater_end))<date('d.m.Y')))     
+              { $rastr ='<'; }
+          elseif (($rater_end!='never') && (date('d.m.Y',strtotime($rater_end))==date('d.m.Y'))) 
+              { $rastr ='='; }
+          elseif (($rater_end!='never') && (date('d.m.Y',strtotime($rater_end))>date('d.m.Y'))) 
+              { $rastr ='>'; }
+          echo  date('d.m.Y',strtotime($rater_end)). $rastr . date('d.m.Y').'<br>';   */     
+
+
 
           // Config settings
           $rater_ip_voting_restriction = $this->getConf('voting_restriction'); // restrict ip address voting (true or false)
@@ -84,11 +100,23 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
           $rater_thankyou_msg          = $this->getConf('thankyou_msg');
           $rater_generic_text          = $this->getConf('generic_text');       // generic item text
           $rater_end_of_line_char      = $this->getConf('eol_char');           // may want to change for different operating systems
-      
+
+          $msg_votended                = $this->getLang('msg_votended');
+          $alink_Back                  = $this->getLang('alink_Back');
+
+          //check if vote period already ended
+          if (($rater_end!='never') && (date('d.m.Y',strtotime($rater_end))<=date('d.m.Y')))
+              {$rater_endmsg =sprintf($msg_votended.date('d.m.Y',strtotime($rater_end))).'<br>';
+               echo $rater_endmsg.'<br><a href="doku.php?id='.$ID.'" />'.$alink_Back.'</a>';
+               return;}
+
 
     //        save vote
             $rater_filename = metaFN('rater_'.$rater_id.$rater_name.$rater_type, '.rating');
-            $rater_ip = getenv("REMOTE_ADDR"); 
+           // trace ip or login
+           
+
+             
             $rater_file=fopen($rater_filename,"a+");
             $rater_str="";
             $rater_str = rtrim(fread($rater_file, 1024*8),$rater_end_of_line_char);
@@ -105,9 +133,11 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
               }
           	if($rater_ip_vote_count > ($rater_ip_vote_qty - 1)){
                $rater_msg=$rater_already_rated_msg;
+               $addMXG = "&info=ppp";
           	}else{
                fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
                $rater_msg=$rater_thankyou_msg;
+               $addMXG = '';
           	}
              }else{
               fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
@@ -120,9 +150,9 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
             fclose($rater_file);
       
       // reload original page
-      $ret .= $rater_msg.'<br><a href="doku.php?id='.$ID.'" />back</a>';
-      echo $ret;
-//      echo '<meta http-equiv="refresh" content="0; URL=doku.php?id='.$ID.'">';
+//      $ret .= $rater_msg.'<br><a href="doku.php?id='.$ID.'" />back</a>';
+//      echo $ret;
+      echo '<meta http-equiv="refresh" content="0; URL=doku.php?id='.$ID.$addMXG.'">';
 
     }
 /******************************************************************************/

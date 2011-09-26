@@ -21,6 +21,13 @@ Syntax
  </code>
 
  If you want to use this multiple times you have to choose different ids and names.
+ 
+ Further Options can be specified:
+ trace=user    - for closed wikis better than ip to step over hurdle of dynamic ip
+ end=09/25/10  - after that day no more votes/rates will be counted, can be any valid date expression
+ tracedetails=1 - will show the quantity of single star ratings or a list of clear ip/names for votes on details action link
+
+
 
 Installation
 ------------
