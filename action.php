@@ -106,13 +106,13 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
 
           //check if vote period already ended
           if (($rater_end!='never') && (date('d.m.Y',strtotime($rater_end))<=date('d.m.Y')))
-              {$rater_endmsg =sprintf($msg_votended.date('d.m.Y',strtotime($rater_end))).'<br>';
+              {$rater_endmsg =sprintf($msg_votended,date('d.m.Y',strtotime($rater_end))).'<br>';
                echo $rater_endmsg.'<br><a href="doku.php?id='.$ID.'" />'.$alink_Back.'</a>';
                return;}
 
 
     //        save vote
-            $rater_filename = metaFN('rater_'.$rater_id.$rater_name.$rater_type, '.rating');
+            $rater_filename = metaFN('rater_'.$rater_id.'_'.$rater_name.'_'.$rater_type, '.rating');
            // trace ip or login
            
 

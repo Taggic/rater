@@ -27,7 +27,10 @@ Syntax
  end=09/25/10  - after that day no more votes/rates will be counted, can be any valid date expression
  tracedetails=1 - will show the quantity of single star ratings or a list of clear ip/names for votes on details action link
 
-
+ or the following to get rater status overview: 
+ <code>
+  {(rater>id=1|name=item1|type=stat)}
+ </code>
 
 Installation
 ------------

@@ -108,7 +108,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           if(!isset($rater_type)) $rater_type="stars";          
           
           // DO NOT MODIFY BELOW THIS LINE
-          $rater_filename = metaFN('rater_'.$data['rater_id'].$data['rater_name'].$data['rater_type'], '.rating');
+          $rater_filename = metaFN('rater_'.$data['rater_id'].'_'.$data['rater_name'].'_'.$data['rater_type'], '.rating');
           $rater_rating=0;
           $rater_stars="";
           $rater_stars_txt="";
@@ -169,29 +169,17 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           if ($rater_type=="rate") {          
               // Get current rating
               $r1 = '0'; $r2 = '0'; $r3 = '0'; $r4 = '0'; $r5 = '0';
+              $rater_votes = '0'; $rater_sum = '0';
               if(is_file($rater_filename)){
-                 $rater_file=fopen($rater_filename,"r");
-                 $rater_str="";
-                 $rater_str = fread($rater_file, 1024*8);
-                 if($rater_str!=""){
-                    $rater_data=explode($rater_end_of_line_char,$rater_str);
-                    $rater_votes=count($rater_data)-1;
-                    $rater_sum=0;
-
-                    foreach($rater_data as $d){
-                        $d=explode("|",$d);
-                        $rater_sum+=$d[0];
-      
-                        // collect votes per level to display the details
-                        if ($d[0] === '1'  ){$r1 = $r1 + 1;}
-                        if ($d[0] === '2'  ){$r2 = $r2 + 1;}
-                        if ($d[0] === '3'  ){$r3 = $r3 + 1;}
-                        if ($d[0] === '4'  ){$r4 = $r4 + 1;}
-                        if ($d[0] === '5'  ){$r5 = $r5 + 1;}
-                    }
-                    $rater_rating=number_format(($rater_sum/$rater_votes), 2, '.', '');
-                 }
-                 fclose($rater_file);
+                 $tmp_array = $this->calc_rater_rating($rater_filename);
+                 $rater_rating = $tmp_array[0][0];
+                 $r1 += $tmp_array[0][1];
+                 $r2 += $tmp_array[0][2];
+                 $r3 += $tmp_array[0][3];
+                 $r4 += $tmp_array[0][4];
+                 $r5 += $tmp_array[0][5];
+                 $rater_votes  += $tmp_array[0][6];
+                 $rater_sum += $tmp_array[0][7];                                  
               }
               else{
                $rater_file=fopen($rater_filename,"w");
@@ -199,17 +187,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               }
 
               // Assign star image
-              if ($rater_rating <= 0  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/00star.gif";$rater_stars_txt="Not Rated";}
-              if ($rater_rating >= 0.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/05star.gif";$rater_stars_txt="0.5";}
-              if ($rater_rating >= 1  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/1star.gif";$rater_stars_txt="1";}
-              if ($rater_rating >= 1.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/15star.gif";$rater_stars_txt="1.5";}
-              if ($rater_rating >= 2  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/2star.gif";$rater_stars_txt="2";}
-              if ($rater_rating >= 2.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/25star.gif";$rater_stars_txt="2.5";}
-              if ($rater_rating >= 3  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/3star.gif";$rater_stars_txt="3";}
-              if ($rater_rating >= 3.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/35star.gif";$rater_stars_txt="3.5";}
-              if ($rater_rating >= 4  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/4star.gif";$rater_stars_txt="4";}
-              if ($rater_rating >= 4.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/45star.gif";$rater_stars_txt="4.5";}
-              if ($rater_rating >= 5  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/5star.gif";$rater_stars_txt="5";}
+              $rater_stars = $this->assign_star_image($rater_rating);
               
               // build the return value for details
               if (($data['rater_end']!='never') && (date('d.m.Y',strtotime($data['rater_end']))>=date('d.m.Y')))
@@ -243,17 +221,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $ret .= '<script type="text/javascript" language="JavaScript1.2">
                           var visible = false;
                           function hidden'.$rater_id.'() 
-                          { 
-                              if (visible)
-                              {
-                                  document.getElementById("details_'.$rater_id.'").style.display = "none";
-                                  visible = false;
-                              }
+                          {   if (visible)
+                              {   document.getElementById("details_'.$rater_id.'").style.display = "none";
+                                  visible = false; }
                               else
-                              {
-                                  document.getElementById("details_'.$rater_id.'").style.display = "block";
-                                  visible = true;
-                              }
+                              {   document.getElementById("details_'.$rater_id.'").style.display = "block";
+                                  visible = true; }
                           } 
                         </script>';
                             
@@ -338,17 +311,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $ret .= '<script type="text/javascript" language="JavaScript1.2">
                           var visible = false;
                           function hidden'.$rater_id.'() 
-                          { 
-                              if (visible)
-                              {
-                                  document.getElementById("details_'.$rater_id.'").style.display = "none";
-                                  visible = false;
-                              }
+                          {   if (visible)
+                              {   document.getElementById("details_'.$rater_id.'").style.display = "none";
+                                  visible = false; }
                               else
-                              {
-                                  document.getElementById("details_'.$rater_id.'").style.display = "block";
-                                  visible = true;
-                              }
+                              {   document.getElementById("details_'.$rater_id.'").style.display = "block";
+                                  visible = true; }
                           } 
                         </script>';                                  
               $ret .= '<TR><TD>'.$addMSG.'<a class="thumbup tup" href="doku.php?id='.$ID.'&do=rate_voteup&rater_id='.$rater_id.'&rater_ip='.$rater_ip.'&rater_end='.$data['rater_end'].'&rater_name='.$rater_name.'" /></a>'.
@@ -362,17 +330,312 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           }
 /******************************************************************************/
           elseif ($rater_type=="stat") {
-              // loop all ".rating" files of metaFN
-              $rater_filename = metaFN();
-              // fill field with results
+            global $conf;
+            $data = array();
+            
+            // 1. load all rating files into array
+            // create an array of all rating files   
+            $delim1 = ".rating";
+            $delim2 = ".txt";
+            clearstatcache();
+            $listRatingFiles = $this->list_files_in_array($conf['metadir'], $delim1, $params_array);
+            // create a list of all page-files
+            $listPages = $this->list_rec_files_in_array($conf['datadir'], $delim2, $params_array);
+            
 
-              // output statistic
-          }
-        }
+              // loop through pages
+            foreach($listPages as &$page_filepath) {                            
+      
+                //read the content of the page file to be analyzed for rater items
+                $body = '';
+                $body = file_get_contents($page_filepath);
+                
+                // find all rater items on this page file
+                $links = array();
+                // define('LINK_PATTERN', "/\{\{.*\}\}/"); 
+                define('LINK_PATTERN', "(rater>[^}]*)");
+                // check for rater syntax on current page
+                if( preg_match(LINK_PATTERN, $body) ) {
+                   preg_match_all(LINK_PATTERN, $body, $links);
+                }
+                
+                // loop through all rater items of this page
+                if (count($links)>0) {
+                   foreach($links as $wse) {
+                      foreach($wse as $link) {
+                          // strip präfix "rater>" = left 6 signs and last sign = ")"
+                          $link = substr($link,6,-1);
+                          // ignore all "type=stat" references
+                          if (stripos($link,"type=stat") === false) {
+                              // extract rater file name
+                              $fileReference = explode("|",$link);
+                              foreach ($fileReference as $param) {                            
+                                  if(stripos($param,"id")!== false) { $id = substr($param,3); }
+                                  elseif(stripos($param,"name=")!== false) { $name = substr($param,5); }
+                                  elseif(stripos($param,"type=")!== false) { $type = substr($param,5); }
+                              }
+    
+                              $cFlag = false;
+                              // loop through rater list to find matching rater
+                              foreach($listRatingFiles as $ratingFile) {
+                                  // check if rater name is part of path
+                                  if(stripos($ratingFile,$id.'_'.$name.'_'.$type)>0) {
+                                      //extract page file name
+                                      $p_filename = basename($page_filepath);
+                                      
+                                      //cut everything before pages/ from link
+                                      $y_pos=strpos($page_filepath, "pages");
+                                      $t1 = substr($page_filepath, $y_pos);
+                                
+                                      $t1 = substr(str_replace( ".txt" , "" , $t1 ) , 5, 9999);
+                                      // turn it into wiki link without "pages"
+                                      $t2 = str_replace("/", ":", $t1);
+                                      $t2 = substr($t2, 1, strlen($t2));                                     
+                                      $t1 = '<a class=wikilink1 href="'. DOKU_URL . "doku.php?id=" . $t2 . '" title="' . $t1 . '" rel="nofollow">' . $id.' '.$name . '</a>';                   
+                        
+                                      // differ between rate and vote
+                                      if (stripos($ratingFile,'rate.rating')>0){
+                                          $rate_counter = $rate_counter+1;
+                                          // store page file and rater file link for output
+                                          $found_ratings[] = array('item' => $t1 , 'file' => basename($ratingFile));
+                                          
+                                          $cFlag = true;
+                                          break;
+                                      }                     
+                                      elseif (stripos($ratingFile,'vote.rating')>0){                      
+                                          $vote_counter = $vote_counter+1;
+                                          // store page file and rater file link for output
+                                          $found_votings[] = $t1 . " : " . basename($ratingFile);
+                                          $cFlag = true;
+                                          break;
+                                      }
+                                  }                    
+                              }
+                              // link on page but rater file not existent due to no votes registerd so far
+                              if($cFlag === false) {                      
+                                  $mis_counter = $mis_counter+1;
+                                  //extract page file name
+                                  $p_filename = basename($page_filepath);
+                                  
+                                  //cut everything before pages/ from link
+                                  $y_pos=strpos($page_filepath, "pages");
+                                  $t1 = substr($page_filepath, $y_pos);
+                            
+                                  $t1 = substr(str_replace( ".txt" , "" , $t1 ) , 5, 9999);
+                                  // turn it into wiki link without "pages"
+                                  $t2 = str_replace("/", ":", $t1);
+                                  $t2 = substr($t2, 1, strlen($t2));                                     
+                                  $t1 = '<a class=wikilink1 href="'. DOKU_URL . "doku.php?id=" . $t2 . '" title="' . $t1 . '" rel="nofollow">' . $id.' '.$name . '</a>';                   
+                                  // store page file where rater file not existent
+                                  $found_nok[] = $t1 . " : " . basename($ratingFile);
+                              }
+                          }
+                      }
+                   }
+                }
+            }
+            
+            // calculate votes
+            for ($a=0;$a<count($found_ratings)-1;$a++) {
+                $rater_filename = $conf['metadir'].'/'.$found_ratings[$a]['file']; 
+                if(is_file($rater_filename)) {
+                    $tmp_array = $this->calc_rater_rating($rater_filename);
+                    $rater_rating = $tmp_array[0][0];
+                    if ($tmp_array[0][1] < 1) { $tmp_array[0][1] = '0'; }
+                    if ($tmp_array[0][2] < 1) { $tmp_array[0][2] = '0'; }
+                    if ($tmp_array[0][3] < 1) { $tmp_array[0][3] = '0'; }
+                    if ($tmp_array[0][4] < 1) { $tmp_array[0][4] = '0'; }
+                    if ($tmp_array[0][5] < 1) { $tmp_array[0][5] = '0'; }
+                    if ($tmp_array[0][6] < 1) { $tmp_array[0][6] = '0'; }
+                    if ($tmp_array[0][7] < 1) { $tmp_array[0][7] = '0'; }
+                    $found_ratings[$a][] = array('value' => $rater_rating);
+                    $rater_stars = $this->assign_star_image($rater_rating);
+                    $found_ratings[$a][] = array('image' => $rater_stars);
+                    $found_ratings[$a][] = array($tmp_array[0][1],$tmp_array[0][2],$tmp_array[0][3],$tmp_array[0][4],$tmp_array[0][5],$tmp_array[0][6]);  
+                }
+            }
+            // sort array
+            $found_ratings = $this->array_sort($found_ratings, 'value', SORT_DESC);
+            
+            
+            // output statistic
+            $ret = '<TABLE class="rating_stat_table"><form method="post" action="doku.php?id=' . $ID .'" >'.
+                   '<TR><TH class="rating_stat_th">Item</TH><TH class="rating_stat_th">Value</TH><TH class="rating_stat_th">Details</TH></TR>';
+            foreach($found_ratings as $findings) {
+                  $dtls_id = uniqid((double)microtime()*1000000,1);
+                  $alink_id++;
+                  $ret_details ='<div class="rating__details">';
+                  $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/1star.gif?w=40&amp;" alt="1 Star" width="40" align="left" /> '.$findings[2][0].' visitor votes<BR>';              
+                  $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/2star.gif?w=40&amp; alt="2 Stars" width="40" align="left" /> '.$findings[2][1].' visitor votes<BR>';              
+                  $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/3star.gif?w=40&amp;" alt="3 Stars" width="40" align="left" /> '.$findings[2][2].' visitor votes<BR>';              
+                  $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/4star.gif?w=40&amp;" alt="4 Stars" width="40" align="left" /> '.$findings[2][3].' visitor votes<BR>';
+                  $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/5star.gif?w=40&amp;" alt="5 Stars" width="40" align="left" /> '.$findings[2][4].' visitor votes<BR>';                            
+                  $ret_details .= '</div>';
+                  $ret_script .= '<script type="text/javascript" language="JavaScript1.2">
+                          var visible = false;
+                          function hidden'.$alink_id.'() 
+                          {   if (visible)
+                              {   document.getElementById("details_'.$alink_id.'").style.display = "none";
+                                  visible = false; }
+                              else
+                              {   document.getElementById("details_'.$alink_id.'").style.display = "block";
+                                  visible = true; }
+                          } 
+                        </script>';
+                $ret .= '<TR class="rating_stat_tr">'.$ret_script.
+                           '<TD class="rating_stat_td_col1">'.$findings['item'].'</TD>'.
+                           '<TD class="rating_stat_td_col2">'.$findings[0]['value'].'</TD>'.
+                           '<TD class="rating_stat_td_col3">'.
+                           '<img src="'.$findings[1]['image'].'?x='.$dtls_id.'" alt="'.$findings[0]['value'].' stars" />'.
+                           '&nbsp; '.$findings[2][5].' votes <a href="#" onclick="hidden'.$alink_id.'()">(Details)</a></TD>'.
+                        '</TR>'.
+                        '<tr>'.
+                           '<td></td><td></td><td style="display : none" id="details_'.$alink_id.'">'.$ret_details.'</td>'.
+                        '</tr>';
+            }
+            $ret .= '</form></TABLE>';
+      }
+      // Render            
+      $renderer->doc .= $ret;
+    }
+  }  
+/******************************************************************************/
+  function assign_star_image($rater_rating) {
+                  // Assign star image
+              if ($rater_rating <= 0  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/00star.gif";$rater_stars_txt="Not Rated";}
+              if ($rater_rating >= 0.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/05star.gif";$rater_stars_txt="0.5";}
+              if ($rater_rating >= 1  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/1star.gif";$rater_stars_txt="1";}
+              if ($rater_rating >= 1.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/15star.gif";$rater_stars_txt="1.5";}
+              if ($rater_rating >= 2  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/2star.gif";$rater_stars_txt="2";}
+              if ($rater_rating >= 2.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/25star.gif";$rater_stars_txt="2.5";}
+              if ($rater_rating >= 3  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/3star.gif";$rater_stars_txt="3";}
+              if ($rater_rating >= 3.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/35star.gif";$rater_stars_txt="3.5";}
+              if ($rater_rating >= 4  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/4star.gif";$rater_stars_txt="4";}
+              if ($rater_rating >= 4.5){$rater_stars = DOKU_BASE."lib/plugins/rater/img/45star.gif";$rater_stars_txt="4.5";}
+              if ($rater_rating >= 5  ){$rater_stars = DOKU_BASE."lib/plugins/rater/img/5star.gif";$rater_stars_txt="5";}
+              return $rater_stars;
+  }
+/******************************************************************************/
+  function array_sort($array, $on, $order)
+  {
+     $new_array = array();
+     $sortable_array = array();
+ 
+    if (count($array) > 0) {
+         foreach ($array as $k => $v) {
+             if (is_array($v)) {
+                 foreach ($v as $k2 => $v2) {
+                     if ($k2 == $on) {
+                         $sortable_array[$k] = $v2;
+                     }
+                 }
+             } else {
+                 $sortable_array[$k] = $v;
+             }
+         }
+ 
+        switch ($order) {
+             case SORT_ASC:
+                 asort($sortable_array);
+             break;
+             case SORT_DESC:
+                 arsort($sortable_array);
+             break;
+         }
+ 
+        foreach ($sortable_array as $k => $v) {
+             $new_array[$k] = $array[$k];
+         }
+     }
+    return $new_array;
+  } 
+/******************************************************************************/
+  function calc_rater_rating($rater_filename) {
+        $rater_end_of_line_char      = $this->getConf('eol_char');
+        $rater_file=fopen($rater_filename,"r");
+        $rater_str="";
+        $rater_str = fread($rater_file, 1024*8);
+        if($rater_str!=""){
+          $rater_data=explode($rater_end_of_line_char,$rater_str);
+          $rater_votes=count($rater_data)-1;
+          $rater_sum=0;
         
-        // Render            
-        $renderer->doc .= $ret;
-
+          foreach($rater_data as $d){
+              $d=explode("|",$d);
+              $rater_sum+=$d[0];
+        
+              // collect votes per level to display the details
+              if ($d[0] === '1'  ){$r1 = $r1 + 1;}
+              if ($d[0] === '2'  ){$r2 = $r2 + 1;}
+              if ($d[0] === '3'  ){$r3 = $r3 + 1;}
+              if ($d[0] === '4'  ){$r4 = $r4 + 1;}
+              if ($d[0] === '5'  ){$r5 = $r5 + 1;}
+          }
+          $rater_rating=number_format(($rater_sum/$rater_votes), 2, '.', '');
+        }
+        fclose($rater_file);
+        $tmp_array[] = array($rater_rating,$r1,$r2,$r3,$r4,$r5,$rater_votes,$rater_sum);
+        return $tmp_array;
+    }
+/******************************************************************************/
+    // search given directory store all files into array 
+    function list_files_in_array($dir, $delim) 
+    { 
+        $listDir = array(); 
+        if($handler = opendir($dir)) { 
+            while (FALSE !== ($sub = readdir($handler))) { 
+                if ($sub !== "." && $sub !== "..") { 
+                    if(is_file($dir."/".$sub)) {   
+                        $x = strpos(basename($dir."/".$sub),$delim);                        
+                        if(($x > 0)){
+                            $listDir[] = $dir."/".$sub; 
+                        }            
+                      //if(DEBUG) echo sprintf("<p><b>%s</b></p>\n", $dir."/".$sub);
+                    }
+                } 
+            }    
+            closedir($handler); 
+        } 
+        return $listDir;    
+    }
+/******************************************************************************/
+    // search given directory recursively and store all files into array 
+    function list_rec_files_in_array($dir, $delim, $excludes) 
+    { 
+        $max_count_files = 10;
+        $listDir = array(); 
+        if($handler = opendir($dir)) { 
+            while (FALSE !== ($sub = readdir($handler))) { 
+                if ($sub !== "." && $sub !== "..") { 
+                    if(is_file($dir."/".$sub)) {   
+                        $x = strpos(basename($dir."/".$sub),".txt");                        
+                        if(($delim === '.txt') && ($x > 0)){
+                            $listDir[] = $dir."/".$sub; 
+                          }            
+                        elseif($delim === 'all') {
+                            $listDir[] = $dir."/".$sub;
+                        } 
+                    }
+                    elseif(is_dir($dir."/".$sub)) { 
+                        $listDir[$sub] = $this->list_rec_files_in_array($dir."/".$sub, $delim,$excludes);
+                    } 
+                } 
+            }    
+            closedir($handler); 
+        }
+        $listDir = $this->array_flat($listDir);
+        sort($listDir); 
+        return $listDir;    
+    }
+/******************************************************************************/
+    // flatten the hierarchical arry to store path + file at first "column"
+    function array_flat($array) {   
+        $out=array();
+        foreach($array as $k=>$v){  
+            if(is_array($array[$k]))  { $out=array_merge($out,$this->array_flat($array[$k])); }
+            else  { $out[]=$v; }
+        }     
+        return $out;
     }
 /******************************************************************************/
 }

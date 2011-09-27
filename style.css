@@ -26,11 +26,53 @@
 	border:        1px #BDBEC1 solid;
 	font-size:                0.85em;
 	text-align:                right;
-	background-color:        #F2F2F2;
+	background-color:        #d8d8d8;
 	padding-right:              10px;
 	padding-left:               10px;
 	margin-left:              0.75em;
 	margin-right:             0.75em;
 	border-radius:               5px;
 	box-shadow:         3px 3px #666;
+}
+
+.rating_stat_table {
+	border:        1px #BDBEC1 solid;
+	font-size:                0.85em;
+	text-align:                right;
+	background-color:        #F8F8F8;
+	padding-right:              10px;
+	padding-left:               10px;
+	margin-left:              0.75em;
+	margin-right:             0.75em;
+	border-radius:               5px;
+	box-shadow:         3px 3px #666;
+}
+
+.rating_stat_tr  {
+  border:     1px solid __border__;
+}
+
+.rating_stat_th  {
+  padding:                     3px;
+  border:     1px solid __border__;
+  background-color: __tbl_header_background__;
+  color:      __tbl_header_color__;
+}
+
+.rating_stat_td_col1 {
+  padding:                     3px;
+	text-align:                 left;
+  border:     1px solid __border__;
+}
+
+.rating_stat_td_col2 {
+  padding:                     3px;
+	text-align:               center;
+  border:     1px solid __border__;
+}
+
+.rating_stat_td_col3 {
+  padding:                     3px;
+	text-align:                 left;
+  border:     1px solid __border__;
 }
