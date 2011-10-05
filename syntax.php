@@ -55,7 +55,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                     /*continue;*/}
                 if ($splitparam[0]=='name')
                 	{$data['rater_name'] = $splitparam[1];  // descriptive item name
-                    /*continue;*/}
+                   $needles = array(":","/","\\");
+                   $data['rater_name'] = str_replace($needles, "_", $data['rater_name']);
+                    }
                 if ($splitparam[0]=='type')
                 	{$data['rater_type'] = $splitparam[1];  // rate or vote or stat
                     /*continue;*/}  
@@ -170,6 +172,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               // Get current rating
               $r1 = '0'; $r2 = '0'; $r3 = '0'; $r4 = '0'; $r5 = '0';
               $rater_votes = '0'; $rater_sum = '0';
+              
               if(is_file($rater_filename)){
                  $tmp_array = $this->calc_rater_rating($rater_filename);
                  $rater_rating = $tmp_array[0][0];
@@ -377,7 +380,11 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                               $fileReference = explode("|",$link);
                               foreach ($fileReference as $param) {                            
                                   if(stripos($param,"id")!== false) { $id = substr($param,3); }
-                                  elseif(stripos($param,"name=")!== false) { $name = substr($param,5); }
+                                  elseif(stripos($param,"name=")!== false) { 
+                                      $name = substr($param,5);
+                                      $needles = array(":","/","\\");
+                                      $name = str_replace($needles, "_", $name);
+                                  }
                                   elseif(stripos($param,"type=")!== false) { $type = substr($param,5); }
                               }
     
@@ -442,8 +449,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
             }
             
             // calculate votes
-            for ($a=0;$a<count($found_ratings)-1;$a++) {
-                $rater_filename = $conf['metadir'].'/'.$found_ratings[$a]['file']; 
+            for ($a=0;$a<count($found_ratings);$a++) {
+                $rater_filename = $conf['metadir'].'/'.$found_ratings[$a]['file'];
                 if(is_file($rater_filename)) {
                     $tmp_array = $this->calc_rater_rating($rater_filename);
                     $rater_rating = $tmp_array[0][0];
@@ -480,7 +487,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/5star.gif?w=40&amp;" alt="5 Stars" width="40" align="left" /> '.$findings[2][4].' visitor votes';                            
                   $ret_details .= '</div>';
                   $ret_script .= '<span><script type="text/javascript" language="JavaScript1.2">
-                          var visible = false;
+                          var visible = false;                                                                      
                           function hidden'.$blink_id.'() 
                           {   if (visible)
                               {   document.getElementById("details_'.$blink_id.'").style.display = "none";
