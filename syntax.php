@@ -101,7 +101,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           
           $rater_id = $data['rater_id'];
           $rater_name = $data['rater_name'];
-          if (!isset($data['rater_end'])) $data['rater_end']='never';
+          if (!isset($data['rater_end'])) {$data['rater_end']='never'; $rater_end='never';}
+          else {$rater_end=$data['rater_end'];}
+
           if(!isset($data['rater_tracedetails'])) $data['rater_tracedetails']='0';
           if(!isset($rater_id)) $rater_id=1;
           $rater_item_name = $data['rater_name'];                              // item name what is to be rated
@@ -117,7 +119,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           $rater_rating=0;
           $rater_votes=0;
           $rater_msg="";
-          
+          $today = date('d.m.Y');
           // check to trace ip or user name
           $user_grp = pageinfo();
           $rater_realname =  $user_grp['userinfo']['name'];
@@ -192,12 +194,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               // Assign star image
               $rater_stars = $this->assign_star_image($rater_rating);
               $anker_id = 'rateanker_'. uniqid((double)microtime()*1000000,1);
-                            
+                           
               // build the return value for details
-              if (($data['rater_end']!='never') && (date('d.m.Y',strtotime($data['rater_end']))>=date('d.m.Y')))
+              if (($rater_end!='never') && (strtotime($today) > strtotime($rater_end)))
               {  $ret_details = '<div class="rating__details">'.sprintf($msg_ratingend,date('d.m.Y',strtotime($data['rater_end']))).'<br />'; 
                  $alink_Details = '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a>'; }
-              elseif (($data['rater_end']!='never') && (date('d.m.Y',strtotime($data['rater_end']))<date('d.m.Y')))
+              elseif (($rater_end!='never') || (strtotime($today) <= strtotime($rater_end)))
               {  $ret_details = '<div class="rating__details">'.sprintf($msg_ratingended,date('d.m.Y',strtotime($data['rater_end']))).'<br />'; 
                  $alink_Details = '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a>';}
               else 
@@ -242,7 +244,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $ret .= '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>'; 
               $ret .= '<tr><td>';
               
-              if (($data['rater_end']!='never') && (date('d.m.Y',strtotime($data['rater_end']))<date('d.m.Y')))
+              
+              if (($rater_end!='never') && (strtotime($today) > strtotime($rater_end)))
               {
                   $rater_msg =''; }
               else {
@@ -291,11 +294,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                  }
                  fclose($rater_file);
                }
-               //check if vote period already ended
-              if (($data['rater_end']!='never') && (date('d.m.Y',strtotime($data['rater_end']))>=date('d.m.Y')))
-                  {$rater_endmsg = sprintf($msg_votend,date('d.m.Y',strtotime($data['rater_end']))).'<br />';}
-              elseif (($data['rater_end']!='never') && (date('d.m.Y',strtotime($data['rater_end']))<date('d.m.Y')))
+               
+               //check if vote period already ended                
+              if (($rater_end!='never') && (strtotime($today) > strtotime($rater_end)))
                   {$rater_endmsg = sprintf($msg_votended,date('d.m.Y',strtotime($data['rater_end']))).'<br />';}
+              elseif (($rater_end!='never') || (strtotime($today) <= strtotime($rater_end)))
+                  {$rater_endmsg = sprintf($msg_votend,date('d.m.Y',strtotime($data['rater_end']))).'<br />';}
               else
                   {$rater_endmsg ='';}
               // build the return value for details if details option is on
@@ -307,7 +311,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $ret_details .= '</div>';                            
               
               // Output vote
-              $ret .= '<form name="'.$data['rater_id'].$data['rater_name'].$data['rater_type'].'" method="post" action="doku.php?id=' . $ID .'">';
+//              $ret .= '<form name="'.$data['rater_id'].$data['rater_name'].$data['rater_type'].'" method="post" action="doku.php?id=' . $ID .'">';
               $ret .= '<table class="hreview">';              
 
               
@@ -331,11 +335,15 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $ret .= $addMSG.'<a class="thumbup tup" href="doku.php?id='.$ID.'&do=rate_voteup&rater_id='.$rater_id.'&rater_ip='.$rater_ip.'&rater_end='.$data['rater_end'].'&anker='.$anker_id.'&rater_name='.$rater_name.'"></a>'.
                    '<span id="vote1_1" style="color:#5b8f22">('.$vote1.')&nbsp;</span>'.
                    '<a class="thumbdown tdn" href="doku.php?id='.$ID.'&do=rate_votedown&rater_id='.$rater_id.'&rater_ip='.$rater_ip.'&rater_end='.$data['rater_end'].'&anker='.$anker_id.'&rater_name='.$rater_name.'"></a>'.
-                   '<span id="vote1_2" style="color:#FF1822">('.$vote2.')</span><a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a></td></tr>';
-              $ret .= '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>';
+                   '<span id="vote1_2" style="color:#FF1822">('.$vote2.')</span>';
+              if($data['rater_tracedetails']==='1') {
+                    $ret .= '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a></td></tr>'.
+                         '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>';
+              }
+              else $ret .='</td></tr>';
               if($rater_msg!="") $ret .= "<div>".$rater_msg."</div>";
               $ret .= '</table>';              
-              $ret .= '</form>';
+//              $ret .= '</form>';
           }
 /******************************************************************************/
           elseif ($rater_type=="stat") {
@@ -473,7 +481,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
             
             // output statistic
             $ret = '<table class="rating_stat_table"><form method="post" action="doku.php?id=' . $ID .'" >'.
-                   '<tr><TH class="rating_stat_th">Item</TH><TH class="rating_stat_th">Value</TH><TH class="rating_stat_th">Details</TH></tr>';
+                   '<tr><th class="rating_stat_th">Item</th><th class="rating_stat_th">Value</th><th class="rating_stat_th">Details</th></tr>';
             foreach($found_ratings as $findings) {
                   $dtls_id = uniqid((double)microtime()*1000000,1);
                   $alink_id++;
