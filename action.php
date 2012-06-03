@@ -23,7 +23,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2011-12-16',
+         'date'   => '2012-06-03',
          'name'   => 'rater (action plugin component)',
          'desc'   => 'to store votes and display feedback.',
          'url'    => 'http://www.dokuwiki.org/plugin:rater',

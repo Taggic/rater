@@ -9,7 +9,7 @@
 // for the string language conversion
 $lang['msg_ratingend']      = 'Bewertungsende am %s';
 $lang['msg_ratingended']    = 'Bewertungszeit endete am %s';
-$lang['msg_votend']         = 'Abstimmung bis %s';
-$lang['msg_votended']       = 'Abstimmung endete am %s';
+$lang['msg_votend']         = 'Zu/Absage bis %s';
+$lang['msg_votended']       = 'Frist endete am %s';
 $lang['btn_submit']         = 'Go';
 $lang['alink_Back']         = 'zur&uumlck'; 

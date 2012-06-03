@@ -1,5 +1,30 @@
 /** * Design Elements - additional  CSS for the rater plugin * * @author Taggic <taggic@t-online.de> */
 /* ----- General Elements ---------- */
+.thumb__negative_feedback {
+	border:            1px red solid;
+	background-color:        #FFB5B5;
+	margin:                      0px;
+	padding:                    10px;
+	width:                       35%;
+	border-radius:             0.5em;
+}
+.thumb__positive_feedback {
+	border:          1px green solid;
+	background-color:     lightgreen;
+	margin:                      0px;
+	padding:                    10px;
+	width:                       35%;
+	border-radius:             0.5em;
+}
+.thumb__standard_feedback {
+	border:         1px black solid;
+	background-color:       #DBDBDB;
+	padding:                    3px;
+  padding-left:            0.45em;
+	width:                      89%;
+	border-radius:            0.5em;
+}
+
  .thumbup {
 	width: 18px;
 	height: 18px;

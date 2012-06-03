@@ -27,7 +27,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 /* Connect pattern to lexer
 */
     function connectTo($mode){
-        $this->Lexer->addSpecialPattern('\{\(rater>[^}]*\)\}',$mode,'plugin_rater');
+        $this->Lexer->addSpecialPattern('\{\(rater>[^}]*?\)\}',$mode,'plugin_rater');
     }    
 /******************************************************************************/
 /* Handle the match
@@ -369,7 +369,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 
                 // find all rater items on this page file
                 $links = array();
-                // define('LINK_PATTERN', "/\{\{.*\}\}/"); 
+                
+                // define('LINK_PATTERN', "/\{\{.*\}\}/");
+                $body = preg_replace('/<code.*?\>.*?<\/code>/si', '', $body);  
                 define('LINK_PATTERN', "(rater>[^}]*)");
                 // check for rater syntax on current page
                 if( preg_match(LINK_PATTERN, $body) ) {
@@ -426,7 +428,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                                       elseif (stripos($ratingFile,'vote.rating')>0){                      
                                           $vote_counter = $vote_counter+1;
                                           // store page file and rater file link for output
-                                          $found_votings[] = $t1 . " : " . basename($ratingFile);
+                                          $found_votings[] = array('item' => $t1 , 'file' => basename($ratingFile));
                                           $cFlag = true;
                                           break;
                                       }
@@ -456,7 +458,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 }
             }
             
-            // calculate votes
+            // calculate ratings
             for ($a=0;$a<count($found_ratings);$a++) {
                 $rater_filename = $conf['metadir'].'/'.$found_ratings[$a]['file'];
                 if(is_file($rater_filename)) {
@@ -478,10 +480,33 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
             // sort array
             $found_ratings = $this->array_sort($found_ratings, 'value', SORT_DESC);
             
+            // calculate votes
+            for ($a=0;$a<count($found_votings);$a++) {
+                $rater_filename = $conf['metadir'].'/'.$found_votings[$a]['file'];          
+                if(is_file($rater_filename)) {
+
+                    $tmp_array = $this->calc_rater_voting($rater_filename);
+                    $rater_voting = $tmp_array[0][0];
+                    if ($tmp_array[0][1] < 1) { $tmp_array[0][1] = '0'; }
+                    if ($tmp_array[0][2] < 1) { $tmp_array[0][2] = '0'; }
+                    $found_votings[$a][] = array('value' => $rater_voting);
+                    $found_votings[$a][] = array($tmp_array[0][1],$tmp_array[0][2],);
+                    $found_votings[$a][] = array('votes' => $tmp_array[0][0],);   
+                    //number_format(($rater_sum/$rater_votes), 2, '.', '');
+                    $rater_thumbs = '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbup.gif?h=12&amp;" alt="Pro" /><span style="color:#5b8f22">&nbsp;('.$tmp_array[0][1].')&nbsp;</span>'.
+                                     '<span>&nbsp;'.number_format(($tmp_array[0][1]/($tmp_array[0][1]+$tmp_array[0][2])*100),2,'.','').'% &nbsp;</span></div>'.
+                                     '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbdown.gif?h=12&amp;" alt="Contra" /><span style="color:#FF1822">&nbsp;('.$tmp_array[0][2].')&nbsp;</span>'.
+                                     '<span>&nbsp;'.number_format(($tmp_array[0][2]/($tmp_array[0][1]+$tmp_array[0][2])*100),2,'.','').'% &nbsp;</span></div>';
+                    $found_votings[$a][] = array('image' => $rater_thumbs);
+                }
+            }
+            // sort array
+            $found_votings = $this->array_sort($found_votings, 'value', SORT_DESC);
             
             // output statistic
             $ret = '<table class="rating_stat_table"><form method="post" action="doku.php?id=' . $ID .'" >'.
                    '<tr><th class="rating_stat_th">Item</th><th class="rating_stat_th">Value</th><th class="rating_stat_th">Details</th></tr>';
+
             foreach($found_ratings as $findings) {
                   $dtls_id = uniqid((double)microtime()*1000000,1);
                   $alink_id++;
@@ -516,6 +541,20 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                         '</tr>'.
                         '<tr>'.
                            '<td></td><td></td><td style="display : none" id="details_'.$blink_id.'">'.$ret_details.'</td>'.
+                        '</tr>';
+            }
+
+            foreach($found_votings as $findings) {
+              // build the return value for details if details option is on
+              $dtls_id = uniqid((double)microtime()*1000000,1);
+              $alink_id++;
+              $blink_id = 'statanker_'.$alink_id;
+              $anker_id = 'anker_'.$alink_id;
+              $ret .= '<tr><td id="'.$anker_id.'">';
+                $ret .= '<tr class="rating_stat_tr">'.
+                           '<td class="rating_stat_td_col1">'.$findings['item'].'</td>'.
+                           '<td class="rating_stat_td_col2">'.$findings[2]['votes'].' votes </td>'.
+                           '<td class="rating_stat_td_col3">'.$findings[3]['image'].'</td>'.
                         '</tr>';
             }
             $ret .= '</form></table>';
@@ -600,6 +639,33 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
         }
         fclose($rater_file);
         $tmp_array[] = array($rater_rating,$r1,$r2,$r3,$r4,$r5,$rater_votes,$rater_sum);
+        return $tmp_array;
+    }
+/******************************************************************************/ 
+    function calc_rater_voting($rater_filename) {
+        $rater_end_of_line_char      = $this->getConf('eol_char');
+        $rater_file=fopen($rater_filename,"r");
+        $rater_str="";
+        $rater_str = fread($rater_file, 1024*8);
+        if($rater_str!=""){
+          $rater_data=explode($rater_end_of_line_char,$rater_str);
+          $rater_votes=count($rater_data)-1;
+          $rater_sum=0;
+          foreach($rater_data as $d){
+              $d=explode("|",$d);
+              $rater_sum++;
+        
+              // collect votes per level to display the details
+              if ($d[0] === '1'  ){$r1++;}
+              if ($d[0] === '2'  ){$r2++;}
+          }
+          if (!$r1) $r1='0';
+          if (!$r2) $r2='0';
+          $rater_rating=$r1." : ".$r2;
+        }
+        fclose($rater_file);
+        $tmp_array[] = array($rater_votes,$r1,$r2,$rater_sum);
+//        echo '<br />'.var_dump($tmp_array).'<br />';
         return $tmp_array;
     }
 /******************************************************************************/
