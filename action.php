@@ -23,7 +23,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2012-06-03',
+         'date'   => '2012-10-17',
          'name'   => 'rater (action plugin component)',
          'desc'   => 'to store votes and display feedback.',
          'url'    => 'http://www.dokuwiki.org/plugin:rater',
@@ -102,7 +102,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
           if (($rater_end!='never') && (strtotime($today) > strtotime($rater_end)))
               {$rater_endmsg =sprintf($msg_votended,date('d.m.Y',strtotime($rater_end))).'<br>';
                
-               echo '<div class="thumb__negative_feedback">'.$rater_endmsg.
+               echo '<meta http-equiv="refresh" content="1; URL=doku.php?id='.$ID.'#'.$anker_id.'"><div class="thumb__negative_feedback">'.$rater_endmsg.
                     '<a href="doku.php?id='.$ID.'" />'.$alink_Back.'</a></div>';
                return;
                }
@@ -131,7 +131,13 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
           	}else{
                fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
                $rater_msg=$rater_thankyou_msg;
-               $addMXG = '';
+               if($rater_rating===2) {
+                  $rater_msg .= $this->getLang('msg_why');
+                   $addMXG = '';
+                   echo '<div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
+                        '<a href="doku.php?id='.$ID.'#'.$anker_id.'" />'.$alink_Back.'</a></div>';
+                   return;
+                }
           	}
              }else{
               fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
@@ -144,12 +150,8 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
             fclose($rater_file);
       
       // reload original page
-//      $ret .= $rater_msg.'<br><a href="doku.php?id='.$ID.'" />back</a>';
-      echo '<div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
-                    '<a href="doku.php?id='.$ID.'" />'.$alink_Back.'</a></div>';
-
-//      echo "anker = ".$anker_id.'<br>';
-      echo '<meta http-equiv="refresh" content="0; URL=doku.php?id='.$ID.'#'.$anker_id.'">';
+      echo '<meta http-equiv="refresh" content="1; URL=doku.php?id='.$ID.'#'.$anker_id.'"><div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
+                    '<a href="doku.php?id='.$ID.'#'.$anker_id.'" />'.$alink_Back.'</a></div>';
 
     }
 /******************************************************************************/

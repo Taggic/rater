@@ -40,11 +40,13 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
         $params = explode('|',$match);
         
         //Default Value
-        $data['rater_id'] = 1;
-        $data['rater_name'] = "this";
-        $data['rater_type'] = "rate";
-        $data['rater_end'] = "never";
-        $data['rater_trace'] = "ip";
+        $data['rater_id']           = 1;
+        $data['rater_name']         = "this";
+        $data['rater_type']         = "rate";
+        $data['rater_end']          = "never";
+        $data['rater_trace']        = "ip";
+        $data['rater_tracedetails'] = 0;
+        $data['rater_headline']     = "on";
         
         foreach($params as $param){            
             $splitparam = explode('=',$param);
@@ -70,6 +72,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 if ($splitparam[0]=='tracedetails')
                 	{$data['rater_tracedetails'] = $splitparam[1]; // ip, user name, none
                     /*continue;*/}  
+                if ($splitparam[0]=='headline')
+                	{$data['rater_headline'] = $splitparam[1]; // ip, user name, none
+                    /*continue;*/}  
             }           
         }    
         return $data;
@@ -82,7 +87,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
         global $lang;
         
         if ($mode == 'xhtml'){            
-            $renderer->info['cache'] = false;     
+            $renderer->info['cache']   = false;     
             
           // Config settings
           $rater_ip_voting_restriction = $this->getConf('voting_restriction'); // restrict ip address voting (true or false)
@@ -92,20 +97,23 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           $rater_thankyou_msg          = $this->getConf('thankyou_msg');
           $rater_generic_text          = $this->getConf('generic_text');       // generic item text
           $rater_end_of_line_char      = $this->getConf('eol_char');           // may want to change for different operating systems
+          if($rater_end_of_line_char == '') $rater_end_of_line_char = '\n';
           
-          $msg_ratingend       = $this->getLang('msg_ratingend');
-          $msg_ratingended     = $this->getLang('msg_ratingended');
-          $msg_votend          = $this->getLang('msg_votend');
-          $msg_votended        = $this->getLang('msg_votended');
-          $btn_submit          = $this->getLang('btn_submit');
+          $msg_ratingend               = $this->getLang('msg_ratingend');
+          $msg_ratingended             = $this->getLang('msg_ratingended');
+          $msg_votend                  = $this->getLang('msg_votend');
+          $msg_votended                = $this->getLang('msg_votended');
+          $btn_submit                  = $this->getLang('btn_submit');
           
-          $rater_id = $data['rater_id'];
-          $rater_name = $data['rater_name'];
+          $rater_id                    = $data['rater_id'];
+          $rater_name                  = $data['rater_name'];
+          $rater_headline              = $data['rater_headline'];
+          
           if (!isset($data['rater_end'])) {$data['rater_end']='never'; $rater_end='never';}
           else {$rater_end=$data['rater_end'];}
 
           if(!isset($data['rater_tracedetails'])) $data['rater_tracedetails']='0';
-          if(!isset($rater_id)) $rater_id=1;
+          if(!isset($rater_id)) $rater_id = 1;
           $rater_item_name = $data['rater_name'];                              // item name what is to be rated
           if(!isset($rater_item_name)) $rater_item_name=$rater_generic_text;
           $rater_type = $data['rater_type'];
@@ -220,14 +228,16 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               
               
               // Output rate
-
+              
               $ret .= '<form method="post" action="doku.php?id=' . $ID .'" >
-                       <table class="hreview">
-                       <tr>
-                        <td class="item">Rate '.$rater_item_name.'</td>
-                       </tr>
-                       <tr>
-                        <td class="rating" id="'.$anker_id.'">
+                       <table class="rater_table">'.NL;
+              if($rater_headline !== "off") {         
+                $ret .= '<tr>
+                           <td class="rater_item">Rate '.$rater_item_name.'</td>
+                         </tr>'.NL;
+              }         
+              $ret .= '<tr>
+                        <td class="rater_rating" id="'.$anker_id.'">
                           <span><script type="text/javascript" language="JavaScript1.2">
                             var visible = false;
                             function hidden'.$rater_id.'() 
@@ -242,7 +252,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                         <img src="'.$rater_stars.'?x='.uniqid((double)microtime()*1000000,1).'" alt="'.$rater_stars_txt.' stars" />&nbsp;'.$rater_stars_txt.' from 
                         <span class="reviewcount"> '.$rater_votes.' votes '.$alink_Details.'</span></td></tr>';
               $ret .= '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>'; 
-              $ret .= '<tr><td>';
+              $ret .= '<tr><td class="rater_img">';
               
               
               if (($rater_end!='never') && (strtotime($today) > strtotime($rater_end)))
@@ -616,6 +626,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 /******************************************************************************/
   function calc_rater_rating($rater_filename) {
         $rater_end_of_line_char      = $this->getConf('eol_char');
+        if($rater_end_of_line_char == '') $rater_end_of_line_char = '\n';
         $rater_file=fopen($rater_filename,"r");
         $rater_str="";
         $rater_str = fread($rater_file, 1024*8);
@@ -644,6 +655,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 /******************************************************************************/ 
     function calc_rater_voting($rater_filename) {
         $rater_end_of_line_char      = $this->getConf('eol_char');
+        if($rater_end_of_line_char == '') $rater_end_of_line_char = '\n';
         $rater_file=fopen($rater_filename,"r");
         $rater_str="";
         $rater_str = fread($rater_file, 1024*8);

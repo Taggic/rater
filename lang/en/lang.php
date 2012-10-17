@@ -12,4 +12,5 @@ $lang['msg_ratingended']    = 'Rating already ended on %s';
 $lang['msg_votend']         = 'Vote period last until %s';
 $lang['msg_votended']       = 'Vote period already ended on %s';
 $lang['btn_submit']         = 'Rate';
-$lang['alink_Back']         = 'back';                                                                                                        
+$lang['alink_Back']         = 'back';
+$lang['msg_why']            = '<br />Please let us know the points for improvements. Therefore you may use the <a href="doku.php?id=contact">contact form</a> or just report a Service Request within the <a href="doku.php?id=issuetracker:report">IssueTracker</a>.';                                                                                                        

@@ -101,3 +101,7 @@
 	text-align:                 left;
   border:     1px solid __border__;
 }
+
+.rater_item, .rater_rating, .rater_img {
+  border: none !important;
+}
