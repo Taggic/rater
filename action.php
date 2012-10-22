@@ -77,7 +77,10 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
       }
       else { return; }
       
-      global $ID;
+      global $ID;          
+      global $lang;
+      global $conf;
+      
       $rater_type = "vote";
       $rater_id   = $this->rater_id;
       $rater_name = $this->rater_name;
@@ -92,7 +95,9 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
           $rater_not_selected_msg      = $this->getConf('not_selected_msg');
           $rater_thankyou_msg          = $this->getConf('thankyou_msg');
           $rater_generic_text          = $this->getConf('generic_text');       // generic item text
-          $rater_end_of_line_char      = $this->getConf('eol_char');           // may want to change for different operating systems
+          $rater_end_of_line_char      = $this->getConf('eol_char');           // to separate the records
+          msg("eol_char = |".$rater_end_of_line_char."|",0);
+          if($rater_end_of_line_char == '') $rater_end_of_line_char = '\n';
 
           $msg_votended                = $this->getLang('msg_votended');
           $alink_Back                  = $this->getLang('alink_Back');
@@ -115,42 +120,46 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
             $rater_str="";
             $rater_str = rtrim(fread($rater_file, 1024*8),$rater_end_of_line_char);
             if($rater_str!=""){
-             if($rater_ip_voting_restriction){
-              $rater_data=explode($rater_end_of_line_char,$rater_str);
-          	  $rater_ip_vote_count=0;
-              foreach($rater_data as $d){
-              	 $rater_tmp=explode("|",$d);
-              	 $rater_oldip=str_replace($rater_end_of_line_char,"",$rater_tmp[1]);
-              	 if($rater_ip==$rater_oldip){
-              	  $rater_ip_vote_count++;
-              	 }
-              }
-          	if($rater_ip_vote_count > ($rater_ip_vote_qty - 1)){
-               $rater_msg=$rater_already_rated_msg;
-               $addMXG = "&info=ppp";
-          	}else{
+               if($rater_ip_voting_restriction){
+                  $rater_data=explode($rater_end_of_line_char,$rater_str);
+              	  $rater_ip_vote_count=0;
+                  foreach($rater_data as $d){
+                  	 $rater_tmp=explode("|",$d);
+                  	 $rater_oldip=str_replace($rater_end_of_line_char,"",$rater_tmp[1]);
+                  	 if($rater_ip==$rater_oldip){
+                  	  $rater_ip_vote_count++;
+                  	 }
+                  }
+                	if($rater_ip_vote_count > ($rater_ip_vote_qty - 1)){
+                     $rater_msg=$rater_already_rated_msg;
+                     $addMXG = "&info=ppp";
+                	}else{
+                     fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
+                     $rater_msg=$rater_thankyou_msg;
+                     if($rater_rating===2) {
+                        $rater_msg .= $this->getLang('msg_why');
+                         $addMXG = '';
+                         echo '<div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
+                              '<a href="doku.php?id='.$ID.'#'.$anker_id.'" />'.$alink_Back.'</a></div>';
+                         return;
+                      }
+                	}
+               }
+               else {
+                fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
+                $rater_msg=$rater_thankyou_msg;
+               }
+            }
+            else{
                fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
                $rater_msg=$rater_thankyou_msg;
-               if($rater_rating===2) {
-                  $rater_msg .= $this->getLang('msg_why');
-                   $addMXG = '';
-                   echo '<div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
-                        '<a href="doku.php?id='.$ID.'#'.$anker_id.'" />'.$alink_Back.'</a></div>';
-                   return;
-                }
-          	}
-             }else{
-              fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
-              $rater_msg=$rater_thankyou_msg;
-             }
-            }else{
-             fwrite($rater_file,$rater_rating."|".$rater_ip.$rater_end_of_line_char);
-             $rater_msg=$rater_thankyou_msg;
             }
             fclose($rater_file);
-      
+
+            msg($rater_rating."|".$rater_ip.$rater_end_of_line_char,0);
+
       // reload original page
-      echo '<meta http-equiv="refresh" content="1; URL=doku.php?id='.$ID.'#'.$anker_id.'"><div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
+      echo '<meta http-equiv="refresh" content="2; URL=doku.php?id='.$ID.'#'.$anker_id.'"><div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
                     '<a href="doku.php?id='.$ID.'#'.$anker_id.'" />'.$alink_Back.'</a></div>';
 
     }

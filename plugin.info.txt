@@ -3,7 +3,7 @@
 base    rater
 author  Taggic
 email   taggic@t-online.de
-date    2012-10-17
+date    2012-10-22
 name    rater
 desc    provides a simple 5 star rater and thumb voting
 url     http://www.dokuwiki.org/plugin:rater

@@ -47,6 +47,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
         $data['rater_trace']        = "ip";
         $data['rater_tracedetails'] = 0;
         $data['rater_headline']     = "on";
+        $data['stat_sort']          = "id";
         
         foreach($params as $param){            
             $splitparam = explode('=',$param);
@@ -75,7 +76,10 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 if ($splitparam[0]=='headline')
                 	{$data['rater_headline'] = $splitparam[1]; // ip, user name, none
                     /*continue;*/}  
-            }           
+                if ($splitparam[0]=='sort')
+                	{$data['rater_stat_sort'] = $splitparam[1]; // ip, user name, none
+                    /*continue;*/}
+            }
         }    
         return $data;
     }    
@@ -85,7 +89,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
     function render($mode, &$renderer, $data) {        
         global $ID;          
         global $lang;
-        
+        global $conf;
         if ($mode == 'xhtml'){            
             $renderer->info['cache']   = false;     
             
@@ -96,7 +100,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           $rater_not_selected_msg      = $this->getConf('not_selected_msg');
           $rater_thankyou_msg          = $this->getConf('thankyou_msg');
           $rater_generic_text          = $this->getConf('generic_text');       // generic item text
-          $rater_end_of_line_char      = $this->getConf('eol_char');           // may want to change for different operating systems
+          $rater_end_of_line_char      = $this->getConf('eol_char');           // to separate the records
           if($rater_end_of_line_char == '') $rater_end_of_line_char = '\n';
           
           $msg_ratingend               = $this->getLang('msg_ratingend');
@@ -105,9 +109,10 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           $msg_votended                = $this->getLang('msg_votended');
           $btn_submit                  = $this->getLang('btn_submit');
           
-          $rater_id                    = $data['rater_id'];
-          $rater_name                  = $data['rater_name'];
-          $rater_headline              = $data['rater_headline'];
+          $rater_id                    = trim($data['rater_id']);
+          $rater_name                  = trim($data['rater_name']);
+          $rater_headline              = trim($data['rater_headline']);
+          $rater_stat_sort             = trim($data['rater_stat_sort']);
           
           if (!isset($data['rater_end'])) {$data['rater_end']='never'; $rater_end='never';}
           else {$rater_end=$data['rater_end'];}
@@ -211,7 +216,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               {  $ret_details = '<div class="rating__details">'.sprintf($msg_ratingended,date('d.m.Y',strtotime($data['rater_end']))).'<br />'; 
                  $alink_Details = '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a>';}
               else 
-              {  $ret_details ='<div class="rating__details">';
+              {  $ret_details ='<p class="rating__details">';
                  $alink_Details = '';}
               
               if ($data['rater_tracedetails']!='0') {
@@ -224,7 +229,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/4star.gif?w=40&amp;" alt="4 Stars" width="40" align="left" /> '.$r4.' visitor votes<br />';
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/5star.gif?w=40&amp;" alt="5 Stars" width="40" align="left" /> '.$r5.' visitor votes';                            
               }
-              $ret_details .= '</div>';
+              $ret_details .= '</p>';
               
               
               // Output rate
@@ -250,8 +255,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                             } 
                           </script></span>
                         <img src="'.$rater_stars.'?x='.uniqid((double)microtime()*1000000,1).'" alt="'.$rater_stars_txt.' stars" />&nbsp;'.$rater_stars_txt.' from 
-                        <span class="reviewcount"> '.$rater_votes.' votes '.$alink_Details.'</span></td></tr>';
-              $ret .= '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>'; 
+                        <span class="reviewcount"> '.$rater_votes.' votes '.$alink_Details.'</span><br />';
+              $ret .= '<div style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</div></td></tr>'; 
               $ret .= '<tr><td class="rater_img">';
               
               
@@ -313,12 +318,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               else
                   {$rater_endmsg ='';}
               // build the return value for details if details option is on
-              $ret_details = '<div class="rating__details">'.$rater_endmsg;
+              $ret_details = '<p class="rating__details">'.$rater_endmsg;
               if ($data['rater_tracedetails']!='0') {
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbup.gif?h=12&amp;" alt="Pro" align="left" /> <p align="left">('.$vote1.') </p><p>'. $who1.'</p><br />';              
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbdown.gif?h=12&amp;" alt="Contra" align="left" /> <p align="left">('.$vote2.') </p><p>'. $who2.'</p>';
               }
-              $ret_details .= '</div>';                            
+              $ret_details .= '</p>';                            
               
               // Output vote
 //              $ret .= '<form name="'.$data['rater_id'].$data['rater_name'].$data['rater_type'].'" method="post" action="doku.php?id=' . $ID .'">';
@@ -347,8 +352,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                    '<a class="thumbdown tdn" href="doku.php?id='.$ID.'&do=rate_votedown&rater_id='.$rater_id.'&rater_ip='.$rater_ip.'&rater_end='.$data['rater_end'].'&anker='.$anker_id.'&rater_name='.$rater_name.'"></a>'.
                    '<span id="vote1_2" style="color:#FF1822">('.$vote2.')</span>';
               if($data['rater_tracedetails']==='1') {
-                    $ret .= '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a></td></tr>'.
-                         '<tr><td style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</td></tr>';
+                    $ret .= '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a><br />'.
+                         '<div style="display : none" id="details_'.$rater_id.'">'.$ret_details.'</div></td></tr>';
               }
               else $ret .='</td></tr>';
               if($rater_msg!="") $ret .= "<div>".$rater_msg."</div>";
@@ -424,7 +429,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                                       // turn it into wiki link without "pages"
                                       $t2 = str_replace("/", ":", $t1);
                                       $t2 = substr($t2, 1, strlen($t2));                                     
-                                      $t1 = '<a class=wikilink1 href="'. DOKU_URL . "doku.php?id=" . $t2 . '" title="' . $t1 . '" rel="nofollow">' . $id.' '.$name . '</a>';                   
+//                                      $t1 = '<a class="wikilink1" href="'. DOKU_URL . "doku.php?id=" . $t2 . '" title="' . $t1 . '" rel="nofollow">' . $id.' '.$name . '</a>';                   
+                                      $t1 = html_wikilink(':'.$t2,$id.' '.$name);
                         
                                       // differ between rate and vote
                                       if (stripos($ratingFile,'rate.rating')>0){
@@ -458,7 +464,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                                   // turn it into wiki link without "pages"
                                   $t2 = str_replace("/", ":", $t1);
                                   $t2 = substr($t2, 1, strlen($t2));                                     
-                                  $t1 = '<a class=wikilink1 href="'. DOKU_URL . "doku.php?id=" . $t2 . '" title="' . $t1 . '" rel="nofollow">' . $id.' '.$name . '</a>';                   
+//                                  $t1 = '<a class=wikilink1 href="'. DOKU_URL . "doku.php?id=" . $t2 . '" title="' . $t1 . '" rel="nofollow">' . $id.' '.$name . '</a>';                   
+                                  $t1 = html_wikilink(':'.$t2,$id.' '.$name);
                                   // store page file where rater file not existent
                                   $found_nok[] = $t1 . " : " . basename($ratingFile);
                               }
@@ -474,6 +481,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 if(is_file($rater_filename)) {
                     $tmp_array = $this->calc_rater_rating($rater_filename);
                     $rater_rating = $tmp_array[0][0];
+                    if($rater_rating=='') $rater_rating='0.00';
                     if ($tmp_array[0][1] < 1) { $tmp_array[0][1] = '0'; }
                     if ($tmp_array[0][2] < 1) { $tmp_array[0][2] = '0'; }
                     if ($tmp_array[0][3] < 1) { $tmp_array[0][3] = '0'; }
@@ -488,70 +496,119 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 }
             }
             // sort array
-            $found_ratings = $this->array_sort($found_ratings, 'value', SORT_DESC);
-            
+            if($rater_stat_sort=='') $rater_stat_sort = 'value' ;
+            $found_ratings = $this->array_sort($found_ratings, $rater_stat_sort, SORT_DESC);
+
+            // script template
+            $ret_script = '<span><script type="text/javascript" language="JavaScript1.2">
+                          var visible = false;
+                          function hidden$blink_id()
+                          {   if (visible)
+                              {   document.getElementById("details_$blink_id").style.display = "none";
+                                  visible = false; }
+                              else
+                              {   document.getElementById("details_$blink_id").style.display = "block";
+                                  visible = true; }
+                          }
+                        </script></span>';
+
             // calculate votes
             for ($a=0;$a<count($found_votings);$a++) {
                 $rater_filename = $conf['metadir'].'/'.$found_votings[$a]['file'];          
                 if(is_file($rater_filename)) {
+                    $alink_id++;
+                    $blink_id     = 'statanker_'.$alink_id;
+                    $anker_id     = 'anker_'.$alink_id;
+                    $ret_script1  = str_ireplace('$blink_id', $blink_id, $ret_script);                                  
+                    
+                    $alink_id++;
+                    $blink_id2    = 'statanker_'.$alink_id;
+                    $anker_id2    = 'anker_'.$alink_id;
+                    $ret_script2  = str_ireplace('$blink_id', $blink_id2, $ret_script);                                  
 
                     $tmp_array = $this->calc_rater_voting($rater_filename);
+                    // returns array($rater_votes, $r1, $who1, $r2, $who2, $rater_sum)
                     $rater_voting = $tmp_array[0][0];
-                    if ($tmp_array[0][1] < 1) { $tmp_array[0][1] = '0'; }
-                    if ($tmp_array[0][2] < 1) { $tmp_array[0][2] = '0'; }
+                    if($rater_voting=='') $rater_voting='0';
+                    if ($tmp_array[0][1] < 1) { $tmp_array[0][1] = '0'; }    // no thumb-up votes so far
+                    if ($tmp_array[0][3] < 1) { $tmp_array[0][3] = '0'; }    // no thumb-down votes so far
                     $found_votings[$a][] = array('value' => $rater_voting);
-                    $found_votings[$a][] = array($tmp_array[0][1],$tmp_array[0][2],);
+                    $found_votings[$a][] = array($tmp_array[0][1], $tmp_array[0][2],$tmp_array[0][3],$tmp_array[0][4]);
                     $found_votings[$a][] = array('votes' => $tmp_array[0][0],);   
                     //number_format(($rater_sum/$rater_votes), 2, '.', '');
                     $rater_thumbs = '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbup.gif?h=12&amp;" alt="Pro" /><span style="color:#5b8f22">&nbsp;('.$tmp_array[0][1].')&nbsp;</span>'.
-                                     '<span>&nbsp;'.number_format(($tmp_array[0][1]/($tmp_array[0][1]+$tmp_array[0][2])*100),2,'.','').'% &nbsp;</span></div>'.
-                                     '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbdown.gif?h=12&amp;" alt="Contra" /><span style="color:#FF1822">&nbsp;('.$tmp_array[0][2].')&nbsp;</span>'.
-                                     '<span>&nbsp;'.number_format(($tmp_array[0][2]/($tmp_array[0][1]+$tmp_array[0][2])*100),2,'.','').'% &nbsp;</span></div>';
-                    $found_votings[$a][] = array('image' => $rater_thumbs);
+                                     '<span>&nbsp;'.number_format(($tmp_array[0][1]/($tmp_array[0][1]+$tmp_array[0][3])*100),2,'.','').'% &nbsp;</span>'.
+                                     $ret_script1.
+                                     '<a href="#'.$anker_id.'" onclick="hidden'.$blink_id.'()" style="float: right;">(Details)</a><br />'.
+                                     '<div class="rater_div_details" id="details_'.$blink_id.'">'.$tmp_array[0][2].'</div>'.
+                                     '</div>'.
+                                     '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbdown.gif?h=12&amp;" alt="Contra" /><span style="color:#FF1822">&nbsp;('.$tmp_array[0][3].')&nbsp;</span>'.
+                                     '<span>&nbsp;'.number_format(($tmp_array[0][3]/($tmp_array[0][1]+$tmp_array[0][3])*100),2,'.','').'% &nbsp;</span>'.
+                                      $ret_script2.
+                                     '<a href="#'.$anker_id2.'" onclick="hidden'.$blink_id2.'()" style="float: right;">(Details)</a><br />'.
+                                     '<div class="rater_div_details" id="details_'.$blink_id2.'">'.$tmp_array[0][4].'</div>'.
+                                     '</div>';
+                    $found_votings[$a][] = array('image' => $rater_thumbs);                            
                 }
             }
             // sort array
-            $found_votings = $this->array_sort($found_votings, 'value', SORT_DESC);
-            
-            // output statistic
-            $ret = '<table class="rating_stat_table"><form method="post" action="doku.php?id=' . $ID .'" >'.
-                   '<tr><th class="rating_stat_th">Item</th><th class="rating_stat_th">Value</th><th class="rating_stat_th">Details</th></tr>';
+            if($rater_stat_sort=='') $rater_stat_sort = 'value' ;
+            $found_ratings = $this->array_sort($found_ratings, $rater_stat_sort, SORT_DESC);
+
+            // make table sortable
+            $ret .=' <script type="text/javascript" src="'.DOKU_URL.'lib/plugins/rater/scripts/jquery.tablesorter.js"></script>
+                      <script type="text/javascript">
+                        ( function($) {
+                        $(document).ready(function(){
+                        // Adds class to th to identify sorting ability to users
+                        $(".sortable th").addClass("ittheader");
+                        // Adds sorting functionality to table. The widgets / zebra declaration sets "odd" or "even" as classes for alternating rows.
+                        $(".sortable").tablesorter({widgets: ["zebra"]});
+                        // Adds "over" class to rows on mouseover
+                        $(".sortable tr").mouseover(function(){
+                        $(this).addClass("over");
+                        });
+                        // Removes "over" class from rows on mouseout
+                        $(".sortable tr").mouseout(function(){
+                        $(this).removeClass("over");
+                        });
+                        });
+                        })( jQuery );
+                    </script>';
+
+            // output statistic table
+            $ret .= ' <table class="sortable rating_stat_table" id="rating_stat_table">
+                         <thead>
+                             <tr  class="">
+                                <th class="rating_stat_th" style="cursor: pointer;">Item</th>
+                                <th class="rating_stat_th" style="cursor: pointer;">Value</th>
+                                <th class="rating_stat_th" style="cursor: pointer;">Details</th>
+                             </tr>
+                         </thead>
+                         <tbody>';
 
             foreach($found_ratings as $findings) {
                   $dtls_id = uniqid((double)microtime()*1000000,1);
                   $alink_id++;
                   $blink_id = 'statanker_'.$alink_id;
                   $anker_id = 'anker_'.$alink_id;
-                  $ret_details ='<div class="rating__details">';
+                  $ret_details ='<p class="rating__details">';
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/1star.gif?w=40&amp;" alt="1 Star" width="40" align="left" /> '.$findings[2][0].' visitor votes<br />';              
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/2star.gif?w=40&amp;" alt="2 Stars" width="40" align="left" /> '.$findings[2][1].' visitor votes<br />';              
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/3star.gif?w=40&amp;" alt="3 Stars" width="40" align="left" /> '.$findings[2][2].' visitor votes<br />';              
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/4star.gif?w=40&amp;" alt="4 Stars" width="40" align="left" /> '.$findings[2][3].' visitor votes<br />';
                   $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/5star.gif?w=40&amp;" alt="5 Stars" width="40" align="left" /> '.$findings[2][4].' visitor votes';                            
-                  $ret_details .= '</div>';
-                  $ret_script .= '<span><script type="text/javascript" language="JavaScript1.2">
-                          var visible = false;                                                                      
-                          function hidden'.$blink_id.'() 
-                          {   if (visible)
-                              {   document.getElementById("details_'.$blink_id.'").style.display = "none";
-                                  
-                                  visible = false; }
-                              else
-                              {   document.getElementById("details_'.$blink_id.'").style.display = "block";
-                                  
-                                  visible = true; }
-                          } 
-                        </script></span>';
+                  $ret_details .= '</p>';
+                  $ret_script1  = str_ireplace('$blink_id', $blink_id, $ret_script);
+                  
                 $ret .= '<tr class="rating_stat_tr">'.
                            '<td class="rating_stat_td_col1">'.$findings['item'].'</td>'.
                            '<td class="rating_stat_td_col2">'.$findings[0]['value'].'</td>'.
-                           '<td class="rating_stat_td_col3" id="'.$anker_id.'">'.$ret_script.
+                           '<td class="rating_stat_td_col3" id="'.$anker_id.'">'.$ret_script1.
                            '<img src="'.$findings[1]['image'].'?x='.$dtls_id.'" alt="'.$findings[0]['value'].' stars" />'.
-                           '&nbsp; '.$findings[2][5].' votes <a href="#'.$anker_id.'" onclick="hidden'.$blink_id.'()">(Details)</a></td>'.
-                        '</tr>'.
-                        '<tr>'.
-                           '<td></td><td></td><td style="display : none" id="details_'.$blink_id.'">'.$ret_details.'</td>'.
-                        '</tr>';
+                           '&nbsp; '.$findings[2][5].' votes <a href="#'.$anker_id.'" onclick="hidden'.$blink_id.'()">(Details)</a>'.
+                           '<div style="display : none" id="details_'.$blink_id.'">'.$ret_details.'</div>'.
+                        '</td></tr>';
             }
 
             foreach($found_votings as $findings) {
@@ -560,16 +617,24 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $alink_id++;
               $blink_id = 'statanker_'.$alink_id;
               $anker_id = 'anker_'.$alink_id;
-              $ret .= '<tr><td id="'.$anker_id.'">';
-                $ret .= '<tr class="rating_stat_tr">'.
-                           '<td class="rating_stat_td_col1">'.$findings['item'].'</td>'.
-                           '<td class="rating_stat_td_col2">'.$findings[2]['votes'].' votes </td>'.
-                           '<td class="rating_stat_td_col3">'.$findings[3]['image'].'</td>'.
-                        '</tr>';
+
+              // build the return value for details
+              $ret_details = '<p class="rating__details">';
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbup.gif?h=12&amp;" alt="Pro" align="left" /> <p align="left">('.$findings[0][0].') </p><p>'. $findings[0][1].'</p><br />';              
+              $ret_details .= '<img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbdown.gif?h=12&amp;" alt="Contra" align="left" /> <p align="left">('.$findings[0][2].') </p><p>'. $findings[0][3].'</p>';
+              $ret_details .= '</p>';
+
+              $ret .= '<tr class="rating_stat_tr">'.
+                         '<td class="rating_stat_td_col1">'.$findings['item'].'</td>'.
+                         '<td class="rating_stat_td_col2">'.$findings[2]['votes'].' votes </td>'.
+                         '<td class="rating_stat_td_col3">'.$findings[3]['image'].
+                         '</td>'.
+                      '</tr>';
             }
-            $ret .= '</form></table>';
+            $ret .= '</tbody></form></table>'.NL;
       }
-      // Render            
+
+      // Render
       $renderer->doc .= $ret;
     }
   }  
@@ -666,17 +731,17 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           foreach($rater_data as $d){
               $d=explode("|",$d);
               $rater_sum++;
-        
+              if($d[1]=="") $d[1] = $this->getLang('foreigner'); // text & styling
               // collect votes per level to display the details
-              if ($d[0] === '1'  ){$r1++;}
-              if ($d[0] === '2'  ){$r2++;}
+              if ($d[0] === '1'  ){$r1++;$who1 .= $d[1]."<br />";}
+              if ($d[0] === '2'  ){$r2++;$who2 .= $d[1]."<br />";}
           }
-          if (!$r1) $r1='0';
-          if (!$r2) $r2='0';
+          if (!$r1) { $r1='0'; $who1 = ''; }
+          if (!$r2) { $r2='0'; $who2 = ''; }
           $rater_rating=$r1." : ".$r2;
         }
         fclose($rater_file);
-        $tmp_array[] = array($rater_votes,$r1,$r2,$rater_sum);
+        $tmp_array[] = array($rater_votes, $r1, $who1, $r2, $who2, $rater_sum);
 //        echo '<br />'.var_dump($tmp_array).'<br />';
         return $tmp_array;
     }
