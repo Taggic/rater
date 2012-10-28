@@ -23,7 +23,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2012-10-17',
+         'date'   => '2012-10-28',
          'name'   => 'rater (action plugin component)',
          'desc'   => 'to store votes and display feedback.',
          'url'    => 'http://www.dokuwiki.org/plugin:rater',
@@ -96,7 +96,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
           $rater_thankyou_msg          = $this->getConf('thankyou_msg');
           $rater_generic_text          = $this->getConf('generic_text');       // generic item text
           $rater_end_of_line_char      = $this->getConf('eol_char');           // to separate the records
-          msg("eol_char = |".$rater_end_of_line_char."|",0);
+//          msg("eol_char = |".$rater_end_of_line_char."|",0);
           if($rater_end_of_line_char == '') $rater_end_of_line_char = '\n';
 
           $msg_votended                = $this->getLang('msg_votended');
@@ -156,7 +156,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
             }
             fclose($rater_file);
 
-            msg($rater_rating."|".$rater_ip.$rater_end_of_line_char,0);
+//            msg($rater_rating."|".$rater_ip.$rater_end_of_line_char,0);
 
       // reload original page
       echo '<meta http-equiv="refresh" content="2; URL=doku.php?id='.$ID.'#'.$anker_id.'"><div class="thumb__positive_feedback">'.$rater_ip.' : '.$rater_msg.'<br />'.
