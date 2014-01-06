@@ -238,7 +238,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                        <table class="rater_table">'.NL;
               if($rater_headline !== "off") {         
                 $ret .= '<tr>
-                           <td class="rater_item">Rate '.$rater_item_name.'</td>
+                           <td class="rater_item">'.$this->getLang('rater_hdl').$rater_item_name.'</td>
                          </tr>'.NL;
               }         
               $ret .= '<tr>
