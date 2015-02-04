@@ -210,9 +210,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                            
               // build the return value for details
               if (($rater_end!='never') && (strtotime($today) > strtotime($rater_end)))
-              {  $ret_details = '<div class="rating__details">'.sprintf($msg_ratingend,date('d.m.Y',strtotime($data['rater_end']))).'<br />'; 
+              {  $ret_details = '<div class="rating__details">'.sprintf($msg_ratingended,date('d.m.Y',strtotime($data['rater_end']))).'<br />'; 
                  $alink_Details = '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a>'; }
-              elseif (($rater_end!='never') || (strtotime($today) <= strtotime($rater_end)))
+              elseif (($rater_end!='never') || (strtotime($today) <= strtotime($rater_end))) 
               {  $ret_details = '<div class="rating__details">'.sprintf($msg_ratingend,date('d.m.Y',strtotime($data['rater_end']))).'<br />'; 
                  $alink_Details = '<a href="#'.$anker_id.'" onclick="hidden'.$rater_id.'()">(Details)</a>';}
               else 
