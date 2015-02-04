@@ -236,9 +236,10 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               
               $ret .= '<form method="post" action="doku.php?id=' . $ID .'" >
                        <table class="rater_table">'.NL;
+              $ul_rater_item_name = str_replace("_"," ",$rater_item_name);
               if($rater_headline !== "off") {         
                 $ret .= '<tr>
-                           <td class="rater_item">Rate '.$rater_item_name.'</td>
+                           <td class="rater_item">'.$ul_rater_item_name.'</td>
                          </tr>'.NL;
               }         
               $ret .= '<tr>
@@ -791,8 +792,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
             foreach($wse as $link) {
                 // strip präfix "rater>" = left 6 signs and last sign = ")"
                 $link = substr($link,6,-1);
+
                 // ignore all "type=stat" references
-                if (stripos($link,"type=stat") === false) {
+                if ((stripos($link,"type=stat") === false) && (stripos($link,"type=localstat") === false)) {
                     // extract rater file name
                     $fileReference = explode("|",$link);
                     foreach ($fileReference as $param) {                            
@@ -804,12 +806,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                         }
                         elseif(stripos($param,"type=")!== false) { $type = substr($param,5); }
                     }
-
+                     
                     $cFlag = false;
                     // loop through rater list to find matching rater
                     foreach($listRatingFiles as $ratingFile) {
                         // check if rater name is part of path
-                        if(stripos($ratingFile,$rater_id.'_'.$name.'_'.$type)>0) {
+                        if(stripos($ratingFile,$this->sonderzeichen(utf8_decode($rater_id.'_'.$name.'_'.$type)))>0) {
                             //extract page file name
                             $p_filename = basename($page_filepath);
                             
@@ -852,5 +854,13 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
          }
       return $returns;    
     }
+/******************************************************************************/
+    function sonderzeichen($string)
+    {
+      $search  = array(" ", "ä",  "ö",  "ü",  "Ä",  "Ö",  "Ü",  "ß",  "´", "&");
+      $replace = array("_", "ae", "oe", "ue", "Ae", "Oe", "Ue", "ss", "",  "");
+      $string  = str_replace($search, $replace, $string);
+      return $string;
+}
 /******************************************************************************/
 }
