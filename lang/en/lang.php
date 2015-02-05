@@ -15,3 +15,5 @@ $lang['btn_submit']         = 'Rate';
 $lang['alink_Back']         = 'back';
 $lang['msg_why']            = '<br />Please let us know the points for improvements. Therefore you may use the <a href="doku.php?id=contact">contact form</a> or just report a Service Request within the <a href="doku.php?id=issuetracker:report">IssueTracker</a>.';
 $lang['foreigner']          = '<span style="color:grey!important;font-size:0.75em!important;"><i>(foreigner)</i></span>';
+$lang['search']             = ' ,ä,ö,ü,Ä,Ö,Ü,ß,´,&';
+$lang['replace']            = '_,ae,oe,ue,Ae,Oe,Ue,ss,,';

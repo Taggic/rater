@@ -92,24 +92,35 @@
   text-align:                 left;
 }
 
+.rating_stat_td_col0 {
+  padding:                     3px;
+	text-align:               center;
+  border:     1px solid __border__;
+  vertical-align:           middle;
+}
+
 .rating_stat_td_col1 {
   padding:                     3px;
 	text-align:                 left;
   border:     1px solid __border__;
+  vertical-align:           middle;
 }
 
 .rating_stat_td_col2 {
   padding:                     3px;
 	text-align:               center;
   border:     1px solid __border__;
+  vertical-align:           middle;
 }
 
 .rating_stat_td_col3 {
   padding:                     3px;
 	text-align:                 left;
   border:     1px solid __border__;
+  vertical-align:           middle;
 }
 
 .rater_item, .rater_rating, .rater_img {
   border: none !important;
+  text-align: center;
 }
