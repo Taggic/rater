@@ -595,6 +595,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                     $rater_img_xhtml = p_render('xhtml',p_get_instructions("{{".trim($d1[0])."?".$rater_zoom."}}"),$info);
                     $rater_img_xhtml = str_replace("<p>","",$rater_img_xhtml);
                     $rater_img_xhtml = str_replace("</p>","",$rater_img_xhtml);
+                    if(strlen($rater_img_xhtml)<1) $rater_img_xhtml="&nbsp";
                     $d3 = '<td class="rating_stat_td_col0">'.$rater_img_xhtml.'</td>';
                 }
                 
@@ -628,7 +629,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $alink_id++;
               $blink_id = 'statanker_'.$alink_id;
               $anker_id = 'anker_'.$alink_id;
-
+              $info = array();
+                
               if($data['rater_tracedetails']=== '1') {
                   // build the return value for details
                   $ret_details = '<p class="rating__details">';
@@ -637,7 +639,17 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                   $ret_details .= '</p>';
               }
               
+              if (strlen($rater_zoom) >0) {
+                  $d1=explode("?",$findings['img']);
+                  $rater_img_xhtml = p_render('xhtml',p_get_instructions("{{".trim($d1[0])."?".$rater_zoom."}}"),$info);
+                  $rater_img_xhtml = str_replace("<p>","",$rater_img_xhtml);
+                  $rater_img_xhtml = str_replace("</p>","",$rater_img_xhtml);
+                  if(strlen($rater_img_xhtml)<1) $rater_img_xhtml="&nbsp";
+                  $d3 = '<td class="rating_stat_td_col0">'.$rater_img_xhtml.'</td>';
+              }
+              
               $ret .= '<tr class="rating_stat_tr">'.
+                           $d3.
                          '<td class="rating_stat_td_col1">'.$findings['item'].'</td>'.
                          '<td class="rating_stat_td_col2">'.$findings[2]['votes'].' votes </td>'.
                          '<td class="rating_stat_td_col3">'.$findings[3]['image'].
@@ -869,7 +881,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                             //cut everything before pages/ from link
                             $t2 = $this->__savedir($page_filepath);
                             // make a link out of it
-                            $t1 = html_wikilink(':'.$t2, $rater_id.' '.$name);
+                            //$t1 = html_wikilink(':'.$t2, $rater_id.' '.$name);
+                            $t1 = html_wikilink(':'.$t2, $name);
               
                             // differ between rate and vote
                             if (stripos($ratingFile,'rate.rating')>0){
