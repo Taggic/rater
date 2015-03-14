@@ -85,6 +85,12 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 if ($splitparam[0]=='zoom')
                 	{$data['rater_zoom'] = $splitparam[1]; // ip, user name, none
                     /*continue;*/}
+                if ($splitparam[0]=='sid')
+                	{$data['rater_sid'] = $splitparam[1]; // ip, user name, none
+                    /*continue;*/}
+                if ($splitparam[0]=='ns')
+                	{$data['rater_ns'] = $splitparam[1]; // ip, user name, none
+                    /*continue;*/}
             }
         }    
         return $data;
@@ -121,6 +127,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
           $rater_stat_sort             = trim($data['rater_stat_sort']);
           $rater_img                   = $data['rater_img'];
           $rater_zoom                  = $data['rater_zoom'];
+          $rater_sid                   = $data['rater_sid'];
+          $rater_ns                    = $data['rater_ns'];
           
           if (!isset($data['rater_end'])) {$data['rater_end']='never'; $rater_end='never';}
           else {$rater_end=$data['rater_end'];}
@@ -401,17 +409,26 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 /******************************************************************************/
           elseif (($rater_type=="stat") || ($rater_type=="localstat")) {
             global $conf;
-//            msg('rater_tracedetails = '.$data['rater_tracedetails'],0);
-//            $data = array();
             // 1. load all rating files into array
             // create an array of all rating files   
             $delim1 = ".rating";
             $delim2 = ".txt";
             clearstatcache();
             $listRatingFiles = $this->list_files_in_array($conf['metadir'], $delim1, $params_array);
-            // create a list of all page-files
-            $listPages = $this->list_rec_files_in_array($conf['datadir'], $delim2, $params_array);
-            
+            // create a list of all page-files, consider ns syntax parameer
+            if(strlen($rater_ns)>1) {
+                if(is_file($conf['datadir']."/".str_replace(":","/",$rater_ns))) {
+                    $listPages = array($conf['datadir']."/".str_replace(":","/",$rater_ns));
+                }
+                else {
+                    $r_datadir = $conf['datadir']."/".str_replace(":","/",$rater_ns);
+                    $listPages = $this->list_rec_files_in_array($r_datadir, $delim2, $params_array);
+                }
+            }
+            else {
+                $r_datadir = $conf['datadir'];
+                $listPages = $this->list_rec_files_in_array($r_datadir, $delim2, $params_array);
+            }
             // loop through all wiki pages
             $returns['ratings'] = array();
             $returns['votings'] = array();
@@ -454,7 +471,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 if( preg_match(LINK_PATTERN, $body) ) {
                    preg_match_all(LINK_PATTERN, $body, $links);
                 }
-                if (count($links)>0) $returns = $this->rater_on_page($links, $listRatingFiles, $page_filepath, $returns);
+                if (count($links)>0) $returns = $this->rater_on_page($links, $listRatingFiles, $tmp['filepath'], $returns);
              }
              
              $found_ratings = $returns['ratings'];
@@ -499,7 +516,9 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 
             // calculate votes
             for ($a=0;$a<count($found_votings);$a++) {
-                $rater_filename = $conf['metadir'].'/'.$found_votings[$a]['file'];          
+                $rater_filename = $conf['metadir'].'/'.$found_votings[$a]['file'];
+                $rater_thumbs='';
+                          
                 if(is_file($rater_filename)) {
                     $alink_id++;
                     $blink_id     = 'statanker_'.$alink_id;
@@ -521,8 +540,10 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                     $found_votings[$a][] = array($tmp_array[0][1], $tmp_array[0][2],$tmp_array[0][3],$tmp_array[0][4]);
                     $found_votings[$a][] = array('votes' => $tmp_array[0][0],);   
                     //number_format(($rater_sum/$rater_votes), 2, '.', '');
+                    if(($tmp_array[0][1]+$tmp_array[0][3])>0) $calc_result=($tmp_array[0][1]/($tmp_array[0][1]+$tmp_array[0][3])*100);
+                    else $calc_result=0;
                     $rater_thumbs = '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbup.gif?h=12&amp;" alt="Pro" /><span style="color:#5b8f22">&nbsp;('.$tmp_array[0][1].')&nbsp;</span>'.
-                                     '<span>&nbsp;'.number_format(($tmp_array[0][1]/($tmp_array[0][1]+$tmp_array[0][3])*100),2,'.','').'% &nbsp;</span>'.NL;
+                                     '<span>&nbsp;'.number_format($calc_result,2,'.','').'% &nbsp;</span>'.NL;
                     
                     if($data['rater_tracedetails']=== '1') {
                         $rater_thumbs .= $ret_script1.
@@ -531,8 +552,10 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                                      '</div>'.NL;
                     }
                     
+                    if(($tmp_array[0][1]+$tmp_array[0][3])>0) $calc_result=($tmp_array[0][3]/($tmp_array[0][1]+$tmp_array[0][3])*100);
+                    else $calc_result=0;
                     $rater_thumbs .= '<div width="100%"><img src="'.DOKU_BASE.'lib/plugins/rater/img/thumbdown.gif?h=12&amp;" alt="Contra" /><span style="color:#FF1822">&nbsp;('.$tmp_array[0][3].')&nbsp;</span>'.
-                                     '<span>&nbsp;'.number_format(($tmp_array[0][3]/($tmp_array[0][1]+$tmp_array[0][3])*100),2,'.','').'% &nbsp;</span>'.NL;
+                                     '<span>&nbsp;'.number_format($calc_result,2,'.','').'% &nbsp;</span>'.NL;
                     
                     if($data['rater_tracedetails']=== '1') {
                         $rater_thumbs .= $ret_script2.
@@ -567,10 +590,13 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                         });
                         })( jQuery );
                     </script>';
-
+            $d2="";
             // output statistic table
             if (strlen($rater_zoom) >0) {
-              $d2 = '<th class="rating_stat_th" style="cursor: pointer;">Thumbs</th>';
+              $d2 = '<th class="rating_stat_th" style="cursor: pointer;">Thumbs</th>'.NL;
+            }
+            if($rater_sid!=false) {
+              $d2 .= '<th class="rating_stat_th" style="cursor: pointer;">ID</th>'.NL;
             }
             $ret .= ' <table class="sortable rating_stat_table" id="rating_stat_table">
                          <thead>
@@ -589,14 +615,22 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                 $blink_id = 'statanker_'.$alink_id;
                 $anker_id = 'anker_'.$alink_id;
                 $info = array();
+                $d3 ="";
+                $d1=array();
                 
                 if (strlen($rater_zoom) >0) {
-                    $d1=explode("?",$findings['img']);
-                    $rater_img_xhtml = p_render('xhtml',p_get_instructions("{{".trim($d1[0])."?".$rater_zoom."}}"),$info);
-                    $rater_img_xhtml = str_replace("<p>","",$rater_img_xhtml);
-                    $rater_img_xhtml = str_replace("</p>","",$rater_img_xhtml);
-                    if(strlen($rater_img_xhtml)<1) $rater_img_xhtml="&nbsp";
-                    $d3 = '<td class="rating_stat_td_col0">'.$rater_img_xhtml.'</td>';
+                    $d1=explode("?",$findings['img']); 
+                    if(strlen($d1[0])>1) {
+                        $rater_img_xhtml = p_render('xhtml',p_get_instructions("{{".trim($d1[0])."?".$rater_zoom."}}"),$info);
+                        $rater_img_xhtml = str_replace("<p>","",$rater_img_xhtml);
+                        $rater_img_xhtml = str_replace("</p>","",$rater_img_xhtml);
+                    }
+                    else $rater_img_xhtml="&nbsp";
+                    $d3 = '<td class="rating_stat_td_col0">'.$rater_img_xhtml.'</td>'.NL;
+                }
+                
+                if ($rater_sid!=false) {
+                    $d3 .= '<td class="rating_stat_td_col0">'.$findings['id'].'</td>';
                 }
                 
                 $ret .= '<tr class="rating_stat_tr">'.
@@ -630,6 +664,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               $blink_id = 'statanker_'.$alink_id;
               $anker_id = 'anker_'.$alink_id;
               $info = array();
+              $d3 = '';
+              $d1=array();
                 
               if($data['rater_tracedetails']=== '1') {
                   // build the return value for details
@@ -641,13 +677,19 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
               
               if (strlen($rater_zoom) >0) {
                   $d1=explode("?",$findings['img']);
-                  $rater_img_xhtml = p_render('xhtml',p_get_instructions("{{".trim($d1[0])."?".$rater_zoom."}}"),$info);
-                  $rater_img_xhtml = str_replace("<p>","",$rater_img_xhtml);
-                  $rater_img_xhtml = str_replace("</p>","",$rater_img_xhtml);
-                  if(strlen($rater_img_xhtml)<1) $rater_img_xhtml="&nbsp";
+                  if(strlen($d1[0])>1) {
+                      $rater_img_xhtml = p_render('xhtml',p_get_instructions("{{".trim($d1[0])."?".$rater_zoom."}}"),$info);
+                      $rater_img_xhtml = str_replace("<p>","",$rater_img_xhtml);
+                      $rater_img_xhtml = str_replace("</p>","",$rater_img_xhtml);
+                  }
+                  else $rater_img_xhtml="&nbsp";
                   $d3 = '<td class="rating_stat_td_col0">'.$rater_img_xhtml.'</td>';
               }
               
+              if ($rater_sid!=false) {
+                  $d3 .= '<td class="rating_stat_td_col0">'.$findings['id'].'</td>';
+              }
+
               $ret .= '<tr class="rating_stat_tr">'.
                            $d3.
                          '<td class="rating_stat_td_col1">'.$findings['item'].'</td>'.
@@ -855,7 +897,10 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
             foreach($wse as $link) {
                 // strip präfix "rater>" = left 6 signs and last sign = ")"
                 $link = substr($link,6,-1);
-
+                $type = '';
+                $img = '';
+                $name = '';
+                
                 // ignore all "type=stat" references
                 if ((stripos($link,"type=stat") === false) && (stripos($link,"type=localstat") === false)) {
                     // extract rater file name
@@ -888,14 +933,14 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                             if (stripos($ratingFile,'rate.rating')>0){
                                 $rate_counter = $rate_counter+1;
                                 // store page file and rater file link for output
-                                $returns['ratings'][] = array('item' => $t1 , 'file' => basename($ratingFile), 'img' => $img);
+                                $returns['ratings'][] = array('id' => $rater_id, 'item' => $t1 , 'file' => basename($ratingFile), 'img' => $img);
                                 $cFlag = true;
                                 break;
                             }                     
                             elseif (stripos($ratingFile,'vote.rating')>0){                      
                                 $vote_counter = $vote_counter+1;
                                 // store page file and rater file link for output
-                                $returns['votings'][] = array('item' => $t1 , 'file' => basename($ratingFile), 'img' => $img);
+                                $returns['votings'][] = array('id' => $rater_id, 'item' => $t1 , 'file' => basename($ratingFile), 'img' => $img);
                                 $cFlag = true;
                                 break;
                             }
