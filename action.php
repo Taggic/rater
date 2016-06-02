@@ -23,7 +23,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2012-10-28',
+         'date'   => '2016-06-02',
          'name'   => 'rater (action plugin component)',
          'desc'   => 'to store votes and display feedback.',
          'url'    => 'http://www.dokuwiki.org/plugin:rater',
@@ -32,7 +32,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
 /******************************************************************************
 **  Register its handlers with the dokuwiki's event controller
 */
-     function register(&$controller) {
+     function register(Doku_Event_Handler &$controller) {
          $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, '_handle_act', array());
          $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'output', array());
      }
