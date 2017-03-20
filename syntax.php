@@ -906,7 +906,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
                     // extract rater file name
                     $fileReference = explode("|",$link);
                     foreach ($fileReference as $param) {                            
-                        if(stripos($param,"id")!== false) { $rater_id = substr($param,3); }
+                        if(stripos($param,"id=")!== false) { $rater_id = substr($param,4); }
                         elseif(stripos($param,"name=")!== false) { 
                             $name = substr($param,5);
                             $needles = array(":","/","\\");
