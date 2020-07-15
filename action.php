@@ -32,7 +32,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
 /******************************************************************************
 **  Register its handlers with the dokuwiki's event controller
 */
-     function register(Doku_Event_Handler &$controller) {
+     function register(Doku_Event_Handler $controller) {
          $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, '_handle_act', array());
          $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'output', array());
      }
@@ -40,7 +40,7 @@ class action_plugin_rater extends DokuWiki_Action_Plugin {
 /******************************************************************************
 **  Handle the action
 */
-     function _handle_act(&$event, $param) {
+     function _handle_act($event, $param) {
          if ($event->data === 'rate_voteup') {
              $this->raterfile = $_GET['rater_file'];
              $this->rater_id = $_GET['rater_id'];
