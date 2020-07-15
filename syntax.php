@@ -764,8 +764,8 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
         $rater_str="";
         $rater_str = fread($rater_file, 1024*8);
         if($rater_str!=""){
-          $rater_data=explode($rater_end_of_line_char,$rater_str);
-          $rater_votes=count($rater_data)-1;
+          $rater_data=explode($rater_end_of_line_char,trim($rater_str));
+          $rater_votes=count($rater_data);
           $rater_sum=0;
         
           foreach($rater_data as $d){
