@@ -32,7 +32,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 /******************************************************************************/
 /* Handle the match
 */
-    function handle($match, $state, $pos, Doku_Handler &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         $match = substr($match,8,-2); //strip markup from start and end
         
         //handle params
@@ -98,7 +98,7 @@ class syntax_plugin_rater extends DokuWiki_Syntax_Plugin
 /******************************************************************************/
 /* Create output
 */
-    function render($mode, Doku_Renderer &$renderer, $data) {        
+    function render($mode, Doku_Renderer $renderer, $data) {
         global $ID;          
         global $lang;
         global $conf;
